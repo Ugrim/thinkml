@@ -134,7 +134,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
 /* ---------- field canvas + scenes ---------- */
 #field{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:0}
 #film{position:relative;z-index:3}
-.scene{position:relative;min-height:100vh;padding:calc(var(--gutter) + 40px) var(--gutter);display:grid;align-content:center}
+.scene{position:relative;min-height:100vh;padding:calc(var(--gutter) + 96px) var(--gutter) calc(var(--gutter) + 40px);display:grid;align-content:center;overflow-x:clip}
 .scene.pin{min-height:100vh}
 .hscene.pin{height:100vh;min-height:0;overflow:hidden;padding-top:0;padding-bottom:0}
 .slate{position:absolute;left:var(--gutter);top:calc(env(safe-area-inset-top,0px) + 56px);font-family:var(--f-mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-35);display:flex;gap:16px}
@@ -180,10 +180,10 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
 #s01 .scrollcue{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);display:grid;justify-items:center;gap:8px;font-family:var(--f-mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-35)}
 #s01 .scrollcue i{width:1px;height:44px;background:linear-gradient(var(--amber),transparent);animation:cue 1.8s infinite}
 @keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
-@media (max-width:700px){#s01 .sub{grid-template-columns:1fr}#s01 .sub .r{text-align:left}}
+@media (max-width:700px){#s01 .sub{grid-template-columns:1fr}#s01 .sub .r{text-align:left}#s01 .scrollcue{display:none}}
 
 /* ---------- 02 thesis ---------- */
-#s02 .thesis{font-size:clamp(30px,5.2vw,78px);font-weight:600;letter-spacing:-.035em;line-height:1.05;max-width:18ch}
+#s02 .thesis{font-size:clamp(28px,3.9vw,58px);font-weight:600;letter-spacing:-.035em;line-height:1.05;max-width:26ch}
 #s02 .thesis .word{opacity:.14}
 #s02 .thesis .word.hot{color:var(--amber)}
 #s02 .race{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,4vw,60px);margin-top:clamp(28px,5vh,60px);border-top:1px solid var(--line);padding-top:24px}
@@ -206,7 +206,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
 .panel.intro{background:transparent;border:0;flex-basis:min(70vw,520px);align-content:center}
 .panel .figure{font-size:clamp(40px,6vw,88px);font-weight:700;letter-spacing:-.045em;line-height:1}
 @media (max-width:900px){
-  .hscene{height:auto!important;min-height:0;padding-block:calc(var(--gutter) + 40px)}
+  .hscene{height:auto!important;min-height:0;padding-block:calc(var(--gutter) + 96px) calc(var(--gutter) + 40px)}
   .hscene .hwrap{height:auto;display:block;overflow:visible}
   .htrack{flex-direction:column;padding:0;transform:none!important}
   .panel{flex-basis:auto;min-height:0}
@@ -216,7 +216,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
 #s04 .lineage{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(18px,3vw,48px);align-items:center}
 #s04 .col{display:grid;gap:12px}
 #s04 .col h3{font-size:clamp(28px,3.4vw,52px);letter-spacing:-.035em;margin-bottom:12px}
-#s04 .row{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding:14px 0;border-top:1px solid var(--line)}
+#s04 .row{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:.95em}
 #s04 .row .k{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-35);width:6.5em}
 #s04 .arrow{width:clamp(50px,8vw,140px);height:2px;background:var(--line);position:relative;overflow:visible}
 #s04 .arrow i{position:absolute;left:0;top:0;height:100%;width:100%;background:linear-gradient(90deg,var(--blue),var(--amber));transform:scaleX(0);transform-origin:left}
@@ -359,7 +359,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
 @media (max-width:820px){#s15 .ask{grid-template-columns:1fr}}
 
 /* ---------- 16 end ---------- */
-#s16{text-align:center;align-content:center;min-height:100vh}
+#s16{text-align:center;align-content:center;min-height:100vh;padding-block:16vh}
 #s16 .end{font-size:clamp(56px,13vw,220px);font-weight:800;letter-spacing:-.06em;line-height:.85}
 #s16 .end em{color:var(--amber)}
 #s16 .credits{margin:clamp(30px,6vh,70px) auto 0;display:grid;gap:10px;justify-items:center;font-family:var(--f-mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-35)}
@@ -370,7 +370,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
   #grain,#cursor,#spot{display:none}
   #hud .rec{animation:none}
   #s01 .scrollcue i{animation:none}
-  .hscene.pin{height:auto;min-height:100vh;overflow:visible;padding:calc(var(--gutter) + 40px) var(--gutter)}
+  .hscene.pin{height:auto;min-height:100vh;overflow:visible;padding:calc(var(--gutter) + 96px) var(--gutter) calc(var(--gutter) + 40px)}
   .hscene .hwrap{height:auto;display:block;overflow:visible}
   .htrack{flex-direction:column;padding:0}
   .panel{flex-basis:auto;min-height:0}
@@ -505,7 +505,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
   <div class="slate"><span>Scene <b>04</b></span><span>Same engine, new frontier</span></div>
   <div>
     <p class="eyebrow" style="margin-bottom:22px">The lineage</p>
-    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Think ML is Think Neuro's playbook, <span class="serif amber">pointed at AI.</span></h2>
+    <h2 class="h-m" style="margin-bottom:clamp(18px,3vh,36px)">Think ML is Think Neuro's playbook, <span class="serif amber">pointed at AI.</span></h2>
     <div class="lineage">
       <div class="col neuro">
         <h3 class="dim">Think Neuro</h3>
@@ -1103,8 +1103,6 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
       .to(gate, { opacity: 0, duration: .01 }, .8);
   }
 
-  if (alreadyUnlocked()) unlock(true); else pw.focus();
-
   /* ---------------- the film ---------------- */
   var scenes = $$('.scene');
   var runtime = 12 * 60; // seconds of "film"
@@ -1174,47 +1172,115 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
       .from('#s01 .scrollcue', { opacity: 0, duration: .6 }, '<');
     if (reduced) { intro.progress(1); }
 
-    // global progress: timecode, progress bar, field energy
-    var tcEl = $('#hud-tc'), prEl = $('#hud-progress');
-    ScrollTrigger.create({
-      start: 0, end: 'max',
-      onUpdate: function (self) {
-        var p = self.progress;
-        var s = p * runtime, m = Math.floor(s / 60), sec = Math.floor(s % 60), fr = Math.floor((s % 1) * 24);
-        tcEl.textContent = pad(m) + ':' + pad(sec) + ':' + pad(fr);
-        prEl.style.width = (p * 100) + '%';
-        if (mainField) mainField.setEnergy(Math.min(1, Math.abs(self.getVelocity()) / 2500));
+    // HUD triggers are created last: they must measure against the pin spacers of every pinned scene.
+    function buildHud() {
+      var tcEl = $('#hud-tc'), prEl = $('#hud-progress');
+      var sceneEl = $('#hud-scene'), nameEl = $('#hud-name');
+      var reelLinks = $$('#reel a');
+      var current = -1, barH = '6vh';
+      // The active scene is whichever one sits under the 55% line of the viewport. A hit test on the
+      // live rects is always right, even while a scene is pinned (its rect is then fixed to the viewport).
+      function setBars(h) {
+        if (h === barH) return; barH = h;
+        gsap.to('.bars .bar', { height: h, duration: .9, ease: 'power3.inOut', overwrite: true });
       }
-    });
-
-    // scene tracking for HUD + reel
-    var sceneEl = $('#hud-scene'), nameEl = $('#hud-name');
-    var reelLinks = $$('#reel a');
-    scenes.forEach(function (s, i) {
+      function trackScene() {
+        var line = window.innerHeight * .55, hit = -1;
+        for (var i = 0; i < scenes.length; i++) {
+          var r = scenes[i].getBoundingClientRect();
+          if (r.top <= line && r.bottom > line) { hit = i; break; }
+        }
+        if (hit < 0 || hit === current) return;
+        current = hit;
+        var s = scenes[hit];
+        sceneEl.textContent = 'Scene ' + s.dataset.scene;
+        nameEl.textContent = s.dataset.name;
+        reelLinks.forEach(function (a, j) { a.classList.toggle('on', j === hit); });
+        setBars(s.id === 's16' ? '10vh' : (s.classList.contains('pin') && !reduced ? '9vh' : '6vh'));
+      }
       ScrollTrigger.create({
-        trigger: s, start: 'top 55%', end: 'bottom 55%',
-        onToggle: function (self) {
-          if (!self.isActive) return;
-          sceneEl.textContent = 'Scene ' + s.dataset.scene;
-          nameEl.textContent = s.dataset.name;
-          reelLinks.forEach(function (a, j) { a.classList.toggle('on', j === i); });
+        start: 0, end: 'max',
+        onUpdate: function (self) {
+          var p = self.progress;
+          var s = p * runtime, m = Math.floor(s / 60), sec = Math.floor(s % 60), fr = Math.floor((s % 1) * 24);
+          tcEl.textContent = pad(m) + ':' + pad(sec) + ':' + pad(fr);
+          prEl.style.width = (p * 100) + '%';
+          if (mainField) mainField.setEnergy(Math.min(1, Math.abs(self.getVelocity()) / 2500));
+          trackScene();
+        },
+        onRefresh: trackScene
+      });
+      trackScene();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+      window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+      ScrollTrigger.refresh();
+    }
+
+    if (reduced) { buildHud(); return; }
+
+    // ---- 1. Pinned scenes, created first and in document order (refreshPriority keeps them first on every refresh)
+    var words = splitWords($('#thesis'));
+    var hotWords = ['adoption.', 'make', 'them,', 'before', 'college.'];
+    words.forEach(function (w) { if (hotWords.indexOf(w.textContent) > -1) w.classList.add('hot'); });
+    var raceA = { v: 0 }, raceB = { v: 0 };
+    function paintRace() {
+      $('#race-a').textContent = Math.round(raceA.v); $('#race-a-bar').style.width = (raceA.v / 24 * 100) + '%';
+      $('#race-b').textContent = raceB.v.toFixed(1); $('#race-b-bar').style.width = (raceB.v / 24 * 100 * 6) + '%';
+    }
+    paintRace();
+    function buildThesis(pin) {
+      var st = pin ? { trigger: '#s02', start: 'top top', end: '+=220%', pin: true, scrub: .6, refreshPriority: 1, anticipatePin: 1 }
+                   : { trigger: '#s02', start: 'top 70%', end: 'bottom 90%', scrub: .6 };
+      var tl = gsap.timeline({ scrollTrigger: st });
+      tl.to(words, { opacity: 1, stagger: .05, duration: .05, ease: 'none' }, 0)
+        .to(raceA, { v: 24, duration: 1.2, ease: 'power2.out', onUpdate: paintRace }, 1.2)
+        .to(raceB, { v: 0.2, duration: 1.2, ease: 'power2.out', onUpdate: paintRace }, 1.2)
+        .to({}, { duration: .4 });
+      return tl;
+    }
+    function buildHorizontal(id) {
+      var sec = $(id), track = $('.htrack', sec);
+      var dist = function () { return track.scrollWidth - window.innerWidth; };
+      var tween = gsap.to(track, { x: function () { return -dist(); }, ease: 'none', scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: .8, invalidateOnRefresh: true, anticipatePin: 1, refreshPriority: 1 } });
+      $$('.panel', sec).forEach(function (p) {
+        gsap.from(p, { opacity: 0, y: 60, scale: .96, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left 90%' } });
+        if (sec.id === 's11' && !p.classList.contains('intro')) {
+          ScrollTrigger.create({ trigger: p, containerAnimation: tween, start: 'left 60%', end: 'right 40%', onToggle: function (self) { p.classList.toggle('live', self.isActive); } });
         }
       });
-    });
+    }
+    function buildLineage() {
+      var s04 = gsap.timeline({ scrollTrigger: { trigger: '#s04', start: 'top top', end: '+=160%', pin: true, scrub: .6, refreshPriority: 1, anticipatePin: 1 } });
+      s04.from('#s04 .neuro .row', { opacity: 0, x: -30, stagger: .08, duration: .5 }, 0)
+         .to('#s04 .arrow i', { scaleX: 1, scaleY: 1, duration: .6, ease: 'none' }, .5)
+         .from('#s04 .ml .row', { opacity: 0, x: 30, stagger: .08, duration: .5 }, .9)
+         .from('#s04 .ml h3', { opacity: 0, y: 10, duration: .3 }, .9)
+         .from('#s04 .lineage + .lede', { opacity: 0, y: 20, duration: .5 }, 1.6)
+         .to({}, { duration: .3 });
+    }
 
-    // letterbox bars breathe between scenes: wider on pinned scenes
-    $$('.scene.pin').forEach(function (s) {
-      ScrollTrigger.create({
-        trigger: s, start: 'top 60%', end: 'bottom 40%',
-        onEnter: function () { gsap.to('.bars .bar', { height: '9vh', duration: .8, ease: 'power3.inOut' }); },
-        onLeave: function () { gsap.to('.bars .bar', { height: '6vh', duration: .8, ease: 'power3.inOut' }); },
-        onEnterBack: function () { gsap.to('.bars .bar', { height: '9vh', duration: .8, ease: 'power3.inOut' }); },
-        onLeaveBack: function () { gsap.to('.bars .bar', { height: '6vh', duration: .8, ease: 'power3.inOut' }); }
+    var mm = gsap.matchMedia();
+    mm.add('(min-width: 901px)', function () {
+      buildThesis(true);      // scene 02
+      buildHorizontal('#s03'); // scene 03
+      buildLineage();         // scene 04
+      buildHorizontal('#s11'); // scene 11
+      return function () {};
+    });
+    mm.add('(max-width: 900px)', function () {
+      buildThesis(false);
+      ['#s03', '#s11'].forEach(function (id) {
+        $$('.panel', $(id)).forEach(function (p) {
+          gsap.from(p, { opacity: 0, y: 40, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: p, start: 'top 85%' } });
+        });
       });
+      $$('#s11 .panel').forEach(function (p) { p.classList.add('live'); });
+      gsap.from('#s04 .row', { opacity: 0, y: 20, stagger: .06, duration: .6, ease: 'power3.out', scrollTrigger: { trigger: '#s04 .lineage', start: 'top 80%' } });
+      gsap.to('#s04 .arrow i', { scaleX: 1, scaleY: 1, duration: .8, ease: 'power2.out', scrollTrigger: { trigger: '#s04 .arrow', start: 'top 80%' } });
+      gsap.from('#s04 .lineage + .lede', { opacity: 0, y: 20, duration: .6, scrollTrigger: { trigger: '#s04 .lineage + .lede', start: 'top 90%' } });
     });
 
-    if (reduced) { ScrollTrigger.refresh(); return; }
-
+    // ---- 2. Everything else
     // generic reveals: eyebrows, headings, ledes, cards
     $$('.scene').forEach(function (s) {
       if (s.id === 's01') return;
@@ -1235,67 +1301,6 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
     // 01: title drifts and fades as you leave
     gsap.to('#s01 .frame', { yPercent: -18, opacity: 0, scale: .96, ease: 'none', scrollTrigger: { trigger: '#s01', start: 'top top', end: 'bottom top', scrub: true } });
 
-    // 02: thesis word-by-word + counters race (pinned on desktop, scrubbed in place on mobile)
-    var words = splitWords($('#thesis'));
-    var hotWords = ['adoption.', 'make', 'them,', 'before', 'college.'];
-    words.forEach(function (w) { if (hotWords.indexOf(w.textContent) > -1) w.classList.add('hot'); });
-    var raceA = { v: 0 }, raceB = { v: 0 };
-    function paintRace() {
-      $('#race-a').textContent = Math.round(raceA.v); $('#race-a-bar').style.width = (raceA.v / 24 * 100) + '%';
-      $('#race-b').textContent = raceB.v.toFixed(1); $('#race-b-bar').style.width = (raceB.v / 24 * 100 * 6) + '%';
-    }
-    paintRace();
-    function buildThesis(pin) {
-      var st = pin ? { trigger: '#s02', start: 'top top', end: '+=220%', pin: true, scrub: .6 }
-                   : { trigger: '#s02', start: 'top 70%', end: 'bottom 90%', scrub: .6 };
-      var tl = gsap.timeline({ scrollTrigger: st });
-      tl.to(words, { opacity: 1, stagger: .05, duration: .05, ease: 'none' }, 0)
-        .to(raceA, { v: 24, duration: 1.2, ease: 'power2.out', onUpdate: paintRace }, 1.2)
-        .to(raceB, { v: 0.2, duration: 1.2, ease: 'power2.out', onUpdate: paintRace }, 1.2)
-        .to({}, { duration: .4 });
-      return tl;
-    }
-
-    var mm = gsap.matchMedia();
-    mm.add('(min-width: 901px)', function () {
-      buildThesis(true);
-
-      // 04: lineage morph, pinned
-      var s04 = gsap.timeline({ scrollTrigger: { trigger: '#s04', start: 'top top', end: '+=160%', pin: true, scrub: .6 } });
-      s04.from('#s04 .neuro .row', { opacity: 0, x: -30, stagger: .08, duration: .5 }, 0)
-         .to('#s04 .arrow i', { scaleX: 1, scaleY: 1, duration: .6, ease: 'none' }, .5)
-         .from('#s04 .ml .row', { opacity: 0, x: 30, stagger: .08, duration: .5 }, .9)
-         .from('#s04 .ml h3', { opacity: 0, y: 10, duration: .3 }, .9)
-         .from('#s04 .lineage + .lede', { opacity: 0, y: 20, duration: .5 }, 1.6)
-         .to({}, { duration: .3 });
-
-      // horizontal scenes
-      ['#s03', '#s11'].forEach(function (id) {
-        var sec = $(id), track = $('.htrack', sec);
-        var dist = function () { return track.scrollWidth - window.innerWidth; };
-        var tween = gsap.to(track, { x: function () { return -dist(); }, ease: 'none', scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: .8, invalidateOnRefresh: true, anticipatePin: 1 } });
-        $$('.panel', sec).forEach(function (p) {
-          gsap.from(p, { opacity: 0, y: 60, scale: .96, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left 90%' } });
-          if (sec.id === 's11' && !p.classList.contains('intro')) {
-            ScrollTrigger.create({ trigger: p, containerAnimation: tween, start: 'left 60%', end: 'right 40%', onToggle: function (self) { p.classList.toggle('live', self.isActive); } });
-          }
-        });
-      });
-      return function () {};
-    });
-    mm.add('(max-width: 900px)', function () {
-      buildThesis(false);
-      ['#s03', '#s11'].forEach(function (id) {
-        $$('.panel', $(id)).forEach(function (p) {
-          gsap.from(p, { opacity: 0, y: 40, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: p, start: 'top 85%' } });
-        });
-      });
-      $$('#s11 .panel').forEach(function (p) { p.classList.add('live'); });
-      gsap.from('#s04 .row', { opacity: 0, y: 20, stagger: .06, duration: .6, ease: 'power3.out', scrollTrigger: { trigger: '#s04 .lineage', start: 'top 80%' } });
-      gsap.to('#s04 .arrow i', { scaleX: 1, scaleY: 1, duration: .8, ease: 'power2.out', scrollTrigger: { trigger: '#s04 .arrow', start: 'top 80%' } });
-      gsap.from('#s04 .lineage + .lede', { opacity: 0, y: 20, duration: .6, scrollTrigger: { trigger: '#s04 .lineage + .lede', start: 'top 90%' } });
-    });
-
     // 07: screen zoom
     gsap.from('#s07 .screen', { scale: .88, opacity: 0, rotateX: 8, transformOrigin: '50% 100%', duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '#s07', start: 'top 70%' } });
 
@@ -1310,7 +1315,7 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
     var weeks = $$('#s09 .wk');
     gsap.to('#s09 .draw', { scaleY: 1, ease: 'none', scrollTrigger: { trigger: '#weeks', start: 'top 60%', end: 'bottom 60%', scrub: true } });
     weeks.forEach(function (w) {
-      gsap.from(w, { opacity: 0, x: 30, duration: .7, ease: 'power3.out', scrollTrigger: { trigger: w, start: 'top 80%' } });
+      gsap.from(w, { opacity: 0, y: 24, duration: .7, ease: 'power3.out', scrollTrigger: { trigger: w, start: 'top 80%' } });
       ScrollTrigger.create({ trigger: w, start: 'top 60%', end: 'bottom 60%', onToggle: function (self) { w.classList.toggle('on', self.isActive); } });
     });
 
@@ -1320,21 +1325,15 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
     gsap.to('#s10 svg', { rotate: 12, ease: 'none', scrollTrigger: { trigger: '#s10', start: 'top bottom', end: 'bottom top', scrub: 1 } });
     gsap.to('#fw-nodes text, #s10 svg > text', { rotate: -12, transformOrigin: '50% 50%', ease: 'none', scrollTrigger: { trigger: '#s10', start: 'top bottom', end: 'bottom top', scrub: 1 } });
 
-    // 12: model reveals with count-up of total
+    // 12: model reveals
     gsap.from('#model', { opacity: 0, y: 40, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: '#model', start: 'top 80%' } });
 
     // 16: end card scales up from small, credits roll
     gsap.from('#endline', { scale: .55, opacity: 0, ease: 'power2.out', scrollTrigger: { trigger: '#s16', start: 'top bottom', end: 'top 20%', scrub: true } });
     gsap.from('#s16 .credits span', { opacity: 0, y: 20, stagger: .15, duration: .8, scrollTrigger: { trigger: '#s16 .credits', start: 'top 90%' } });
-    ScrollTrigger.create({
-      trigger: '#s16', start: 'top 40%',
-      onEnter: function () { gsap.to('.bars .bar', { height: '14vh', duration: 1.2, ease: 'power3.inOut' }); },
-      onLeaveBack: function () { gsap.to('.bars .bar', { height: '6vh', duration: .8, ease: 'power3.inOut' }); }
-    });
 
-    // fonts may reflow: refresh once they land
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
-    window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+    // ---- 3. HUD last
+    buildHud();
   }
 
   /* ---------------- tilt + magnet ---------------- */
@@ -1395,6 +1394,9 @@ body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
     ids.forEach(function (k) { inputs[k].addEventListener('input', calc); });
     calc();
   }
+
+  /* ---------------- boot ---------------- */
+  if (alreadyUnlocked()) unlock(true); else pw.focus();
 })();
 </script>
 </body>
