@@ -1,0 +1,1401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Think ML</title>
+<meta name="description" content="Think ML: the plan for Think Neuro's AI extension. Scroll to play.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* ------------------------------------------------------------------
+   THINK ML  ·  a scroll film for Michael
+   Layout: one dark theatre. Every scene is a full-bleed frame, most are
+   pinned and scrubbed by scroll. A persistent HUD (timecode, scene, reel
+   progress) and letterbox bars make the whole page read as one film.
+   Single-theme by choice: this is a cinema, the lights stay down.
+------------------------------------------------------------------ */
+:root{
+  color-scheme:dark;
+  --ink:#07070c;          /* theatre black, slightly blue */
+  --ink-2:#0e0e17;        /* raised surfaces */
+  --ink-3:#171726;        /* cards */
+  --bone:#ebe5d8;         /* projector-white text */
+  --bone-60:rgba(235,229,216,.62);
+  --bone-35:rgba(235,229,216,.36);
+  --line:rgba(235,229,216,.12);
+  --amber:#f3b544;        /* tungsten, the warm accent */
+  --amber-soft:rgba(243,181,68,.16);
+  --blue:#5f6dff;         /* the cool light of the screen */
+  --blue-soft:rgba(95,109,255,.18);
+  --good:#7fe0b1;
+  --warn:#ff8b6b;
+
+  --f-display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-serif:"Instrument Serif", Georgia, "Times New Roman", serif;
+  --f-mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --gutter:clamp(16px, 5vw, 72px);
+  --measure:62ch;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:auto;-webkit-text-size-adjust:100%}
+html,body{margin:0;background:var(--ink);color:var(--bone)}
+body{
+  font-family:var(--f-display);
+  font-size:clamp(16px, 1.05vw + 10px, 19px);
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body.locked{overflow:hidden;height:100vh}
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.02em;text-wrap:balance;line-height:1.02}
+p{margin:0;max-width:var(--measure)}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+strong{font-weight:600;color:var(--bone)}
+em{font-family:var(--f-serif);font-style:italic;font-weight:400;letter-spacing:0}
+::selection{background:var(--amber);color:var(--ink)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+
+.serif{font-family:var(--f-serif);font-style:italic;font-weight:400;letter-spacing:0}
+.mono{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
+.dim{color:var(--bone-60)}
+.amber{color:var(--amber)}
+.blue{color:var(--blue)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- grain, cursor, spotlight ---------- */
+#grain{position:fixed;inset:-50%;width:200%;height:200%;pointer-events:none;z-index:60;opacity:.08;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation:grain 1.2s steps(6) infinite;mix-blend-mode:screen}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+
+#cursor{position:fixed;left:0;top:0;pointer-events:none;z-index:70;mix-blend-mode:difference}
+#cursor .c-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;transform:translate(-50%,-50%)}
+#cursor .c-ring{position:absolute;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.8);transform:translate(-50%,-50%);transition:width .25s var(--ease),height .25s var(--ease),opacity .25s}
+body.cursor-hot #cursor .c-ring{width:70px;height:70px;opacity:.6}
+#spot{position:fixed;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(520px circle at var(--mx,50%) var(--my,50%), rgba(95,109,255,.13), transparent 60%);
+  transition:opacity .6s}
+@media (hover:none){#cursor{display:none}#spot{display:none}}
+
+/* ---------- letterbox + hud ---------- */
+.bars{position:fixed;inset:0;pointer-events:none;z-index:50}
+.bars .bar{position:absolute;left:0;right:0;height:0;background:#000;will-change:height}
+.bars .top{top:0}.bars .bot{bottom:0}
+
+#hud{position:fixed;inset:0;pointer-events:none;z-index:55;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-60);opacity:0}
+#hud > *{position:absolute}
+#hud .tl{left:var(--gutter);top:calc(env(safe-area-inset-top,0px) + 18px);display:flex;gap:14px;align-items:center}
+#hud .rec{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 12px var(--warn);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+#hud .tr{right:var(--gutter);top:calc(env(safe-area-inset-top,0px) + 18px);text-align:right}
+#hud .bl{left:var(--gutter);bottom:calc(env(safe-area-inset-bottom,0px) + 18px)}
+#hud .br{right:var(--gutter);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);text-align:right}
+#hud .tc{color:var(--bone);font-size:.8rem}
+#hud .progress{left:0;right:0;top:0;height:2px;background:rgba(235,229,216,.1)}
+#hud .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--blue));transform-origin:left}
+
+#reel{position:fixed;right:calc(var(--gutter) - 6px);top:50%;transform:translateY(-50%);z-index:56;display:flex;flex-direction:column;gap:10px;opacity:0}
+#reel a{position:relative;width:12px;height:12px;display:grid;place-items:center;pointer-events:auto;text-decoration:none}
+#reel a i{width:4px;height:4px;border-radius:50%;background:var(--bone-35);transition:all .3s;display:block}
+#reel a.on i{width:8px;height:8px;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+#reel a span{position:absolute;right:22px;white-space:nowrap;font-family:var(--f-mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-60);opacity:0;transform:translateX(6px);transition:all .25s;pointer-events:none}
+#reel a:hover span{opacity:1;transform:none}
+@media (max-width:900px){#reel{display:none}#hud .bl,#hud .br{display:none}}
+
+/* ---------- gate ---------- */
+#gate{position:fixed;inset:0;z-index:80;background:var(--ink);display:grid;place-items:center;padding:var(--gutter);overflow:hidden}
+#gate canvas{position:absolute;inset:0;width:100%;height:100%}
+#gate .g-inner{position:relative;width:min(560px,100%);text-align:center;display:grid;gap:28px;justify-items:center}
+#gate .g-mark{display:flex;align-items:center;gap:14px;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-60)}
+#gate .g-mark i{width:44px;height:1px;background:var(--bone-35)}
+#gate h1{font-size:clamp(40px,7vw,84px);font-weight:700;letter-spacing:-.04em}
+#gate h1 em{color:var(--amber)}
+#gate p{color:var(--bone-60);max-width:38ch}
+#gate form{width:100%;display:grid;gap:12px;justify-items:center}
+#gate .field{position:relative;width:min(420px,100%)}
+#gate input{width:100%;padding:18px 56px 18px 22px;border-radius:999px;border:1px solid var(--line);background:rgba(14,14,23,.7);color:var(--bone);font:inherit;font-size:1.05rem;letter-spacing:.08em;backdrop-filter:blur(10px);transition:border-color .3s,box-shadow .3s}
+#gate input::placeholder{color:var(--bone-35);letter-spacing:.02em}
+#gate input:focus{outline:0;border-color:var(--amber);box-shadow:0 0 0 4px var(--amber-soft)}
+#gate .go{position:absolute;right:6px;top:6px;bottom:6px;width:46px;border-radius:50%;background:var(--amber);color:var(--ink);display:grid;place-items:center;transition:transform .3s var(--ease)}
+#gate .go:hover{transform:scale(1.08)}
+#gate .g-msg{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-35);min-height:1.2em}
+#gate .g-msg.bad{color:var(--warn)}
+#gate.shake .field{animation:shake .5s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+#gate .g-foot{position:absolute;bottom:calc(var(--gutter) * .6);left:0;right:0;text-align:center;font-family:var(--f-mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-35)}
+#gate .shutter{position:absolute;inset:0;background:#000;transform:scaleY(0);transform-origin:center;pointer-events:none}
+
+/* ---------- field canvas + scenes ---------- */
+#field{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:0}
+#film{position:relative;z-index:3}
+.scene{position:relative;min-height:100vh;padding:calc(var(--gutter) + 40px) var(--gutter);display:grid;align-content:center}
+.scene.pin{min-height:100vh}
+.hscene.pin{height:100vh;min-height:0;overflow:hidden;padding-top:0;padding-bottom:0}
+.slate{position:absolute;left:var(--gutter);top:calc(env(safe-area-inset-top,0px) + 56px);font-family:var(--f-mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-35);display:flex;gap:16px}
+.slate b{color:var(--amber);font-weight:500}
+.eyebrow{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);display:inline-flex;gap:12px;align-items:center}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--amber)}
+.h-xl{font-size:clamp(44px,8.5vw,128px);font-weight:700;letter-spacing:-.045em;line-height:.92}
+.h-l{font-size:clamp(34px,5.4vw,80px);font-weight:600;letter-spacing:-.035em}
+.h-m{font-size:clamp(26px,3.2vw,46px);font-weight:600;letter-spacing:-.03em}
+.h-s{font-size:clamp(20px,1.8vw,26px);font-weight:600}
+.lede{font-size:clamp(18px,1.5vw,24px);line-height:1.4;color:var(--bone-60)}
+.lede strong{color:var(--bone)}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:clamp(20px,3vw,48px);align-items:start}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:clamp(16px,2vw,28px)}
+.stack{display:grid;gap:clamp(18px,2.4vw,32px)}
+.card{background:var(--ink-2);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,2.4vw,34px);min-width:0;transform-style:preserve-3d;will-change:transform}
+.card.tilt{transition:box-shadow .4s}
+.card.tilt:hover{box-shadow:0 30px 80px -30px rgba(95,109,255,.35)}
+.card .k{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-35);margin-bottom:14px;display:flex;justify-content:space-between;gap:12px}
+.card h3{font-size:clamp(20px,1.6vw,24px);margin-bottom:10px}
+.card p{color:var(--bone-60);font-size:.95em}
+.card ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px;color:var(--bone-60);font-size:.95em}
+.card ul li{padding-left:18px;position:relative}
+.card ul li::before{content:"";position:absolute;left:0;top:.7em;width:8px;height:1px;background:var(--amber)}
+.tag{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-family:var(--f-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-60)}
+.tag.hot{border-color:var(--amber);color:var(--amber);background:var(--amber-soft)}
+.tag.cool{border-color:var(--blue);color:#aab2ff;background:var(--blue-soft)}
+.btn{display:inline-flex;align-items:center;gap:12px;padding:16px 26px;border-radius:999px;background:var(--bone);color:var(--ink);font-weight:600;text-decoration:none;transition:transform .35s var(--ease),background .3s;will-change:transform}
+.btn.ghost{background:transparent;color:var(--bone);border:1px solid var(--line)}
+.btn:hover{background:var(--amber)}
+.btn.ghost:hover{background:var(--ink-3)}
+.word{display:inline-block;will-change:opacity,transform}
+.char{display:inline-block;will-change:transform,opacity}
+.line-mask{overflow:hidden;display:block}
+.note{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--bone-35);max-width:none}
+
+/* ---------- 01 title ---------- */
+#s01{text-align:left;align-content:end;padding-bottom:calc(var(--gutter) + 40px)}
+#s01 .title{font-size:clamp(72px,17vw,300px);font-weight:800;letter-spacing:-.06em;line-height:.82;display:flex;flex-wrap:wrap;gap:0 .15em;color:var(--bone)}
+#s01 .title .ml{color:transparent;-webkit-text-stroke:2px var(--bone)}
+#s01 .sub{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;margin-top:28px;border-top:1px solid var(--line);padding-top:24px}
+#s01 .sub .r{text-align:right}
+#s01 .scrollcue{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);display:grid;justify-items:center;gap:8px;font-family:var(--f-mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--bone-35)}
+#s01 .scrollcue i{width:1px;height:44px;background:linear-gradient(var(--amber),transparent);animation:cue 1.8s infinite}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+@media (max-width:700px){#s01 .sub{grid-template-columns:1fr}#s01 .sub .r{text-align:left}}
+
+/* ---------- 02 thesis ---------- */
+#s02 .thesis{font-size:clamp(30px,5.2vw,78px);font-weight:600;letter-spacing:-.035em;line-height:1.05;max-width:18ch}
+#s02 .thesis .word{opacity:.14}
+#s02 .thesis .word.hot{color:var(--amber)}
+#s02 .race{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,4vw,60px);margin-top:clamp(28px,5vh,60px);border-top:1px solid var(--line);padding-top:24px}
+#s02 .race .stat{display:grid;gap:6px}
+#s02 .race .big{font-size:clamp(34px,5vw,72px);font-weight:700;letter-spacing:-.04em;line-height:1}
+#s02 .race .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:10px}
+#s02 .race .bar i{display:block;height:100%;width:0;background:var(--blue)}
+#s02 .race .stat.build .bar i{background:var(--amber)}
+@media (max-width:640px){#s02 .race{grid-template-columns:1fr}}
+
+/* ---------- horizontal scenes ---------- */
+.hscene .hwrap{height:100vh;display:flex;align-items:center;overflow:hidden}
+.htrack{display:flex;gap:clamp(16px,2vw,32px);padding:0 var(--gutter);will-change:transform}
+.panel{flex:0 0 min(78vw,640px);min-height:min(66vh,560px);display:grid;align-content:space-between;gap:24px;background:var(--ink-2);border:1px solid var(--line);border-radius:22px;padding:clamp(22px,3vw,44px);position:relative;overflow:hidden}
+.panel .idx{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.16em;color:var(--bone-35)}
+.panel h3{font-size:clamp(28px,3vw,44px);letter-spacing:-.03em}
+.panel p{color:var(--bone-60)}
+.panel .glow{position:absolute;right:-30%;bottom:-40%;width:80%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,var(--blue-soft),transparent 65%);pointer-events:none}
+.panel.warm .glow{background:radial-gradient(circle,var(--amber-soft),transparent 65%)}
+.panel.intro{background:transparent;border:0;flex-basis:min(70vw,520px);align-content:center}
+.panel .figure{font-size:clamp(40px,6vw,88px);font-weight:700;letter-spacing:-.045em;line-height:1}
+@media (max-width:900px){
+  .hscene{height:auto!important;min-height:0;padding-block:calc(var(--gutter) + 40px)}
+  .hscene .hwrap{height:auto;display:block;overflow:visible}
+  .htrack{flex-direction:column;padding:0;transform:none!important}
+  .panel{flex-basis:auto;min-height:0}
+}
+
+/* ---------- 04 lineage ---------- */
+#s04 .lineage{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(18px,3vw,48px);align-items:center}
+#s04 .col{display:grid;gap:12px}
+#s04 .col h3{font-size:clamp(28px,3.4vw,52px);letter-spacing:-.035em;margin-bottom:12px}
+#s04 .row{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding:14px 0;border-top:1px solid var(--line)}
+#s04 .row .k{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-35);width:6.5em}
+#s04 .arrow{width:clamp(50px,8vw,140px);height:2px;background:var(--line);position:relative;overflow:visible}
+#s04 .arrow i{position:absolute;left:0;top:0;height:100%;width:100%;background:linear-gradient(90deg,var(--blue),var(--amber));transform:scaleX(0);transform-origin:left}
+#s04 .arrow::after{content:"";position:absolute;right:-2px;top:50%;width:10px;height:10px;border-top:2px solid var(--amber);border-right:2px solid var(--amber);transform:translateY(-50%) rotate(45deg);opacity:.9}
+#s04 .ml .row{border-top-color:rgba(243,181,68,.35)}
+@media (max-width:820px){#s04 .lineage{grid-template-columns:1fr}#s04 .arrow{width:2px;height:60px;margin:0 auto}#s04 .arrow i{transform:scaleY(0);transform-origin:top}#s04 .arrow::after{right:auto;left:50%;top:auto;bottom:-2px;transform:translateX(-50%) rotate(135deg)}}
+
+/* ---------- 05 audience ---------- */
+#s05 .split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,3vw,48px)}
+#s05 .side{border-top:2px solid var(--line);padding-top:22px;display:grid;gap:18px;align-content:start}
+#s05 .side.buyer{border-top-color:var(--amber)}
+#s05 .side.user{border-top-color:var(--blue)}
+#s05 .side h3{font-size:clamp(30px,3.6vw,56px);letter-spacing:-.035em}
+#s05 .side ul{list-style:none;margin:0;padding:0;display:grid;gap:12px;color:var(--bone-60)}
+#s05 .side li{display:grid;grid-template-columns:22px 1fr;gap:10px}
+#s05 .side li b{font-family:var(--f-mono);font-size:.62rem;color:var(--bone-35);padding-top:.35em}
+#s05 .bridge{grid-column:1/-1;margin-top:8px;padding:clamp(18px,2.4vw,30px);border-radius:18px;background:linear-gradient(120deg,var(--amber-soft),var(--blue-soft));border:1px solid var(--line);font-size:clamp(20px,2.2vw,32px);letter-spacing:-.02em;line-height:1.25}
+@media (max-width:760px){#s05 .split{grid-template-columns:1fr}}
+
+/* ---------- 06 product, 07 autopilot ---------- */
+#s06 .tracks{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,2.6vw,36px);perspective:1400px}
+#s06 .track{background:var(--ink-2);border:1px solid var(--line);border-radius:22px;padding:clamp(22px,3vw,44px);display:grid;gap:18px;align-content:start;min-width:0}
+#s06 .track.hero{border-color:rgba(243,181,68,.4);background:linear-gradient(160deg,rgba(243,181,68,.08),var(--ink-2) 50%)}
+#s06 .track.cool{border-color:rgba(95,109,255,.4);background:linear-gradient(160deg,rgba(95,109,255,.1),var(--ink-2) 50%)}
+#s06 .track h3{font-size:clamp(28px,3vw,44px);letter-spacing:-.03em}
+#s06 .spec{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 20px;border-top:1px solid var(--line);padding-top:16px}
+#s06 .spec div{display:grid;gap:2px}
+#s06 .spec b{font-size:1.25rem;letter-spacing:-.02em}
+#s06 .spec span{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-35)}
+@media (max-width:820px){#s06 .tracks{grid-template-columns:1fr}}
+
+#s07{background:radial-gradient(1200px 600px at 50% 120%, rgba(95,109,255,.12), transparent)}
+#s07 .screen{position:relative;border:1px solid rgba(95,109,255,.45);border-radius:26px;padding:clamp(22px,3.5vw,54px);background:linear-gradient(180deg,rgba(14,14,23,.9),rgba(7,7,12,.9));box-shadow:0 0 0 1px rgba(95,109,255,.12), 0 60px 160px -60px rgba(95,109,255,.55);overflow:hidden}
+#s07 .screen::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none;mix-blend-mode:overlay}
+#s07 .screen .corner{position:absolute;width:18px;height:18px;border:2px solid var(--blue)}
+#s07 .screen .c1{left:10px;top:10px;border-right:0;border-bottom:0}
+#s07 .screen .c2{right:10px;top:10px;border-left:0;border-bottom:0}
+#s07 .screen .c3{left:10px;bottom:10px;border-right:0;border-top:0}
+#s07 .screen .c4{right:10px;bottom:10px;border-left:0;border-top:0}
+#s07 .head{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;margin-bottom:clamp(22px,3vw,40px)}
+#s07 .head h3{font-size:clamp(30px,4.2vw,64px);letter-spacing:-.04em}
+#s07 .loop{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:14px}
+#s07 .step{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;min-width:0}
+#s07 .step .n{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.14em;color:#aab2ff}
+#s07 .step h4{font-size:1.05rem}
+#s07 .step p{font-size:.9em;color:var(--bone-60)}
+#s07 .ops{margin-top:clamp(20px,3vw,36px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;border-top:1px solid var(--line);padding-top:20px}
+#s07 .ops div{display:grid;gap:4px}
+#s07 .ops b{font-size:clamp(24px,2.6vw,40px);letter-spacing:-.03em;line-height:1}
+#s07 .ops span{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bone-35)}
+@media (max-width:700px){#s07 .head{grid-template-columns:1fr}}
+
+/* ---------- 08 advisors ---------- */
+#s08 .orbit-wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(20px,4vw,64px);align-items:center}
+#s08 .orbit{position:relative;aspect-ratio:1;max-width:min(92vw,560px);width:100%;margin:0 auto}
+#s08 .ring{position:absolute;inset:0;border-radius:50%;border:1px dashed var(--line);will-change:transform}
+#s08 .ring.r2{inset:18%}
+#s08 .ring.r3{inset:36%}
+#s08 .ring span{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);padding:8px 14px;border-radius:999px;background:var(--ink-2);border:1px solid var(--line);font-family:var(--f-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:var(--bone)}
+#s08 .core{position:absolute;inset:44%;border-radius:50%;background:radial-gradient(circle,var(--amber),rgba(243,181,68,.2) 60%,transparent 70%);display:grid;place-items:center;font-family:var(--f-mono);font-size:.6rem;letter-spacing:.14em;color:var(--ink);font-weight:500}
+#s08 .roles{display:grid;gap:14px}
+#s08 .roles div{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;padding:14px 0;border-top:1px solid var(--line)}
+#s08 .roles b{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.14em;color:var(--amber);font-weight:500;width:7em}
+#s08 .roles p{color:var(--bone-60)}
+@media (max-width:900px){#s08 .orbit-wrap{grid-template-columns:1fr}}
+
+/* ---------- 09 curriculum ---------- */
+#s09 .weeks{position:relative;display:grid;gap:0;margin-top:clamp(24px,4vh,48px);padding-left:34px}
+#s09 .weeks::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:1px;background:var(--line)}
+#s09 .weeks .draw{position:absolute;left:8px;top:0;bottom:0;width:1px;background:linear-gradient(var(--amber),var(--blue));transform:scaleY(0);transform-origin:top}
+#s09 .wk{display:grid;grid-template-columns:7em 1fr;gap:20px;padding:20px 0;border-top:1px solid var(--line);position:relative;align-items:baseline}
+#s09 .wk::before{content:"";position:absolute;left:-30px;top:28px;width:9px;height:9px;border-radius:50%;background:var(--ink);border:1px solid var(--bone-35)}
+#s09 .wk.on::before{background:var(--amber);border-color:var(--amber);box-shadow:0 0 12px var(--amber)}
+#s09 .wk .w{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-35)}
+#s09 .wk h4{font-size:clamp(18px,1.7vw,24px);margin-bottom:4px}
+#s09 .wk p{color:var(--bone-60);font-size:.95em}
+@media (max-width:640px){#s09 .wk{grid-template-columns:1fr;gap:6px}}
+
+/* ---------- 10 flywheel ---------- */
+#s10 .fw{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,4vw,64px);align-items:center}
+#s10 svg{width:100%;max-width:min(92vw,560px);height:auto;margin:0 auto;display:block;overflow:visible}
+#s10 .fw-list{display:grid;gap:0}
+#s10 .fw-list div{display:grid;grid-template-columns:2.2em 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--line);align-items:baseline}
+#s10 .fw-list b{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.14em;color:var(--amber);font-weight:500}
+#s10 .fw-list p{color:var(--bone-60)}
+@media (max-width:900px){#s10 .fw{grid-template-columns:1fr}}
+
+/* ---------- 11 scale plan (horizontal) ---------- */
+#s11 .panel{flex-basis:min(82vw,720px)}
+#s11 .panel .ph{font-size:clamp(60px,10vw,150px);font-weight:800;letter-spacing:-.06em;line-height:.8;color:transparent;-webkit-text-stroke:1.5px var(--bone-35)}
+#s11 .panel.live .ph{color:var(--amber);-webkit-text-stroke:0}
+#s11 .panel ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;color:var(--bone-60);font-size:.95em}
+#s11 .panel li{padding-left:18px;position:relative}
+#s11 .panel li::before{content:"";position:absolute;left:0;top:.7em;width:8px;height:1px;background:var(--amber)}
+#s11 .panel .kpi{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- 12 revenue + model ---------- */
+#s12 .engines{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px;margin-bottom:clamp(24px,4vh,48px)}
+#s12 .engine{background:var(--ink-2);border:1px solid var(--line);border-radius:18px;padding:22px;display:grid;gap:10px;min-width:0}
+#s12 .engine .k{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bone-35);display:flex;justify-content:space-between}
+#s12 .engine h4{font-size:1.15rem}
+#s12 .engine p{font-size:.9em;color:var(--bone-60)}
+#s12 .engine .m{font-family:var(--f-mono);font-size:.66rem;color:var(--good)}
+#s12 .model{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(18px,3vw,40px);background:var(--ink-2);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,3vw,40px)}
+#s12 .controls{display:grid;gap:18px}
+#s12 .ctl{display:grid;gap:8px}
+#s12 .ctl label{display:flex;justify-content:space-between;gap:12px;font-size:.92em;color:var(--bone-60)}
+#s12 .ctl label b{color:var(--bone);font-variant-numeric:tabular-nums}
+#s12 input[type=range]{width:100%;accent-color:var(--amber);height:28px}
+#s12 .out{display:grid;gap:16px;align-content:start;border-left:1px solid var(--line);padding-left:clamp(18px,3vw,40px)}
+#s12 .out .total{font-size:clamp(40px,5vw,72px);font-weight:700;letter-spacing:-.045em;line-height:1}
+#s12 .out .row{display:grid;grid-template-columns:1fr auto;gap:12px;font-size:.92em;color:var(--bone-60);align-items:center}
+#s12 .out .row b{color:var(--bone)}
+#s12 .out .bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+#s12 .out .bar i{display:block;height:100%;width:0;transition:width .5s var(--ease)}
+#s12 .out .bar.a i{background:var(--amber)}
+#s12 .out .bar.b i{background:var(--blue)}
+#s12 .out .bar.c i{background:var(--good)}
+#s12 .out .bar.d i{background:var(--warn)}
+@media (max-width:820px){#s12 .model{grid-template-columns:1fr}#s12 .out{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:20px}}
+
+/* ---------- 13 gtm, 14 risks ---------- */
+#s13 .channels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px}
+#s14 .risks{display:grid;gap:0;border-top:1px solid var(--line)}
+#s14 .risk{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px 0;border-bottom:1px solid var(--line)}
+#s14 .risk h4{font-size:1.1rem;margin-bottom:4px}
+#s14 .risk p{color:var(--bone-60);font-size:.95em}
+#s14 .risk .moat{border-left:2px solid var(--good);padding-left:16px}
+#s14 .risk .moat .k{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--good);margin-bottom:4px}
+@media (max-width:700px){#s14 .risk{grid-template-columns:1fr}}
+
+/* ---------- 15 ninety days + ask ---------- */
+#s15 .plan{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;margin-bottom:clamp(24px,4vh,48px)}
+#s15 .ask{border:1px solid rgba(243,181,68,.4);background:linear-gradient(160deg,rgba(243,181,68,.1),var(--ink-2) 55%);border-radius:22px;padding:clamp(22px,3vw,44px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,40px)}
+#s15 .ask h3{font-size:clamp(30px,4vw,60px);letter-spacing:-.04em}
+#s15 .ask ol{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:ask}
+#s15 .ask li{display:grid;grid-template-columns:2em 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line);color:var(--bone-60)}
+#s15 .ask li::before{counter-increment:ask;content:counter(ask,decimal-leading-zero);font-family:var(--f-mono);font-size:.7rem;color:var(--amber);padding-top:.3em}
+#s15 .ask li strong{display:block;color:var(--bone)}
+@media (max-width:820px){#s15 .ask{grid-template-columns:1fr}}
+
+/* ---------- 16 end ---------- */
+#s16{text-align:center;align-content:center;min-height:100vh}
+#s16 .end{font-size:clamp(56px,13vw,220px);font-weight:800;letter-spacing:-.06em;line-height:.85}
+#s16 .end em{color:var(--amber)}
+#s16 .credits{margin:clamp(30px,6vh,70px) auto 0;display:grid;gap:10px;justify-items:center;font-family:var(--f-mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bone-35)}
+#s16 .credits b{color:var(--bone-60);font-weight:500}
+#s16 .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:32px}
+
+@media (prefers-reduced-motion:reduce){
+  #grain,#cursor,#spot{display:none}
+  #hud .rec{animation:none}
+  #s01 .scrollcue i{animation:none}
+  .hscene.pin{height:auto;min-height:100vh;overflow:visible;padding:calc(var(--gutter) + 40px) var(--gutter)}
+  .hscene .hwrap{height:auto;display:block;overflow:visible}
+  .htrack{flex-direction:column;padding:0}
+  .panel{flex-basis:auto;min-height:0}
+  #s11 .panel .ph{color:var(--amber);-webkit-text-stroke:0}
+  #s04 .arrow i{transform:none}
+  #s09 .weeks .draw{transform:none}
+}
+</style>
+</head>
+<body class="locked">
+
+<div id="grain" aria-hidden="true"></div>
+<div id="spot" aria-hidden="true"></div>
+<div id="cursor" aria-hidden="true"><div class="c-dot"></div><div class="c-ring"></div></div>
+
+<!-- =========================== GATE =========================== -->
+<section id="gate" aria-label="Enter password">
+  <canvas id="gate-canvas" aria-hidden="true"></canvas>
+  <div class="g-inner">
+    <div class="g-mark"><i></i>A Think Neuro production<i></i></div>
+    <h1>Think <em>ML</em></h1>
+    <p>A private screening for Michael. Enter the password to start the film.</p>
+    <form id="gate-form" autocomplete="off">
+      <div class="field">
+        <label for="pw" class="mono" style="position:absolute;left:-9999px">Password</label>
+        <input id="pw" type="password" placeholder="Password" spellcheck="false" autocapitalize="off" autofocus>
+        <button class="go" type="submit" aria-label="Enter">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="g-msg" id="g-msg" aria-live="polite">Press enter to begin</div>
+    </form>
+  </div>
+  <div class="g-foot">Confidential · Internal plan · Scroll to play once inside</div>
+  <div class="shutter" aria-hidden="true"></div>
+</section>
+
+<!-- =========================== HUD =========================== -->
+<div class="bars" aria-hidden="true"><div class="bar top"></div><div class="bar bot"></div></div>
+<div id="hud" aria-hidden="true">
+  <div class="progress"><i id="hud-progress"></i></div>
+  <div class="tl"><span class="rec"></span><span>Rec</span><span class="tc num" id="hud-tc">00:00:00</span></div>
+  <div class="tr"><div id="hud-scene">Scene 01</div><div id="hud-name" style="color:var(--bone)">Title</div></div>
+  <div class="bl">Think ML · A Think Neuro company</div>
+  <div class="br">Runtime 12:00 · Scroll to play</div>
+</div>
+<nav id="reel" aria-label="Scenes"></nav>
+
+<canvas id="field" aria-hidden="true"></canvas>
+
+<!-- =========================== FILM =========================== -->
+<main id="film">
+
+<!-- 01 TITLE -->
+<section class="scene" id="s01" data-scene="01" data-name="Title">
+  <div class="slate"><span>Scene <b>01</b></span><span>Title card</span></div>
+  <div class="frame">
+    <p class="eyebrow" style="margin-bottom:20px">An extension of Think Neuro</p>
+    <h1 class="title" aria-label="Think ML"><span class="tw">Think</span><span class="tw ml">ML</span></h1>
+    <div class="sub">
+      <p class="lede" style="max-width:44ch">AI is being built faster than anyone can learn to use it. <strong>We teach it before college.</strong> This is the plan, cut as a film, so you can scroll it in twelve minutes.</p>
+      <div class="r">
+        <div class="mono dim">Prepared for</div>
+        <div class="h-s">Michael, Founder, Think Neuro</div>
+        <div class="mono dim" style="margin-top:6px">Internal · Confidential</div>
+      </div>
+    </div>
+  </div>
+  <div class="scrollcue"><span>Scroll</span><i></i></div>
+</section>
+
+<!-- 02 THESIS -->
+<section class="scene pin" id="s02" data-scene="02" data-name="The thesis">
+  <div class="slate"><span>Scene <b>02</b></span><span>Cold open</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:26px">The thesis</p>
+    <p class="thesis" id="thesis">Everyone is funding the build. Nobody is funding the adoption. The models will arrive either way. The people who know how to use them will not. So we make them, at scale, before they reach college.</p>
+    <div class="race" aria-label="Illustrative comparison">
+      <div class="stat build">
+        <span class="mono dim">Build side · frontier model releases</span>
+        <span class="big num"><span id="race-a">24</span><span class="dim" style="font-size:.5em"> / year</span></span>
+        <div class="bar"><i id="race-a-bar" style="width:100%"></i></div>
+        <span class="note">Illustrative: major lab releases now land monthly</span>
+      </div>
+      <div class="stat">
+        <span class="mono dim">Adoption side · school curriculum cycles</span>
+        <span class="big num"><span id="race-b">0.2</span><span class="dim" style="font-size:.5em"> / year</span></span>
+        <div class="bar"><i id="race-b-bar" style="width:5%"></i></div>
+        <span class="note">Illustrative: a K-12 curriculum revision takes years</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 THE GAP (horizontal) -->
+<section class="scene pin hscene" id="s03" data-scene="03" data-name="The gap">
+  <div class="slate"><span>Scene <b>03</b></span><span>Four shots</span></div>
+  <div class="hwrap"><div class="htrack" id="gap-track">
+    <div class="panel intro">
+      <p class="eyebrow" style="margin-bottom:18px">The gap</p>
+      <h2 class="h-l">Four people, one missing product.</h2>
+      <p class="lede" style="margin-top:18px">Nobody in this frame is served by what exists today. That is the opening.</p>
+    </div>
+    <article class="panel warm">
+      <div class="idx">01 / The lab</div>
+      <div><div class="figure">Weeks</div><h3>Between releases</h3></div>
+      <p>Every frontier lab ships faster than the last. Their real bottleneck is no longer capability. It is the number of people who can actually put the capability to work.</p>
+    </article>
+    <article class="panel">
+      <div class="idx">02 / The classroom</div>
+      <div><div class="figure">Years</div><h3>Between curricula</h3></div>
+      <p>Schools cannot move at model speed. Most high schools have no AI course, and the few that exist teach the AI of two years ago, taught by teachers learning it the same week.</p>
+    </article>
+    <article class="panel warm">
+      <div class="idx">03 / The parent</div>
+      <div><div class="figure">Anxious</div><h3>And already paying</h3></div>
+      <p>Parents feel the shift before schools do. They already pay for test prep, tutoring and summer programs. They want a credible, safe on-ramp to AI for their kid, and a story that helps with admissions.</p>
+    </article>
+    <article class="panel">
+      <div class="idx">04 / The student</div>
+      <div><div class="figure">Curious</div><h3>And unproven</h3></div>
+      <p>A 16-year-old aiming at CS or AI in college has watched every demo and built nothing. They want a real project, a mentor with a real name, and proof they belong in the field.</p>
+    </article>
+    <div class="panel intro">
+      <h2 class="h-m">Think Neuro already solved this once.<br><span class="serif amber">For neuroscience.</span></h2>
+    </div>
+  </div></div>
+</section>
+
+<!-- 04 LINEAGE -->
+<section class="scene pin" id="s04" data-scene="04" data-name="The lineage">
+  <div class="slate"><span>Scene <b>04</b></span><span>Same engine, new frontier</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The lineage</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Think ML is Think Neuro's playbook, <span class="serif amber">pointed at AI.</span></h2>
+    <div class="lineage">
+      <div class="col neuro">
+        <h3 class="dim">Think Neuro</h3>
+        <div class="row"><span class="k">Field</span><span>Neuroscience research for high schoolers</span></div>
+        <div class="row"><span class="k">Format</span><span>Mentored research cohorts, small groups</span></div>
+        <div class="row"><span class="k">Advisors</span><span>Researchers and clinicians from top institutions</span></div>
+        <div class="row"><span class="k">Output</span><span>A real research project the student can point to</span></div>
+        <div class="row"><span class="k">Buyer</span><span>Parents of ambitious students</span></div>
+        <div class="row"><span class="k">Proof</span><span>Brand, parent trust, alumni, an operating playbook</span></div>
+      </div>
+      <div class="arrow" aria-hidden="true"><i></i></div>
+      <div class="col ml">
+        <h3>Think ML</h3>
+        <div class="row"><span class="k">Field</span><span>Machine learning and applied AI</span></div>
+        <div class="row"><span class="k">Format</span><span>Mentored build cohorts, plus an automated online track</span></div>
+        <div class="row"><span class="k">Advisors</span><span>Engineers and researchers from the frontier labs</span></div>
+        <div class="row"><span class="k">Output</span><span>A working AI project, a write-up, a demo day in front of advisors</span></div>
+        <div class="row"><span class="k">Buyer</span><span>Same parents, now with a bigger fear and a bigger budget</span></div>
+        <div class="row"><span class="k">Upside</span><span>A market that every lab, incubator and AI company wants access to</span></div>
+      </div>
+    </div>
+    <p class="lede" data-no-reveal style="margin-top:clamp(22px,4vh,40px);max-width:60ch">Everything expensive about starting a program is already built at Think Neuro: the trust, the parent list, the mentor pipeline, the way we recruit advisors. <strong>Think ML inherits all of it on day one.</strong></p>
+  </div>
+</section>
+
+<!-- 05 AUDIENCE -->
+<section class="scene" id="s05" data-scene="05" data-name="The audience">
+  <div class="slate"><span>Scene <b>05</b></span><span>Two characters</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The audience</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Sold to parents. <span class="serif amber">Loved by students.</span></h2>
+    <div class="split">
+      <div class="side buyer">
+        <span class="mono amber">The buyer</span>
+        <h3>The parent</h3>
+        <p class="dim">Has a 15 to 18 year old who says "CS" or "AI" when asked about college. Reads every headline about jobs and AI. Already spends on enrichment. Wants a program with real names attached and an outcome they can put in an application.</p>
+        <ul>
+          <li><b>01</b><span>Buys credibility: advisors from labs they have heard of.</span></li>
+          <li><b>02</b><span>Buys safety: a structured, supervised, age-appropriate path into a scary subject.</span></li>
+          <li><b>03</b><span>Buys the artefact: a project, a letter, a demo day, a line for the Common App.</span></li>
+          <li><b>04</b><span>Already trusts Think Neuro, or trusts a parent who does.</span></li>
+        </ul>
+      </div>
+      <div class="side user">
+        <span class="mono blue">The user</span>
+        <h3>The student</h3>
+        <p class="dim">Rising junior or senior, targeting CS, AI, data science, robotics, cognitive science or any degree where "I built this" matters. Has used ChatGPT for homework. Has never trained a model or shipped anything.</p>
+        <ul>
+          <li><b>01</b><span>Wants to build something real, not another intro-to-Python.</span></li>
+          <li><b>02</b><span>Wants a mentor who works at a place they follow on X and YouTube.</span></li>
+          <li><b>03</b><span>Wants peers who are as ambitious as they are.</span></li>
+          <li><b>04</b><span>Wants proof: a repo, a demo, a write-up, a name on a leaderboard.</span></li>
+        </ul>
+      </div>
+      <div class="bridge">The parent pays for the <em>credibility</em>. The student stays for the <em>build</em>. The program works only when both are true at once, which is exactly what Think Neuro already does.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 PRODUCT -->
+<section class="scene" id="s06" data-scene="06" data-name="The product">
+  <div class="slate"><span>Scene <b>06</b></span><span>Two tracks</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The product</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">One brand. Two tracks. <span class="serif amber">One curriculum.</span></h2>
+    <div class="tracks">
+      <article class="track hero" data-tilt>
+        <span class="tag hot">Track one · Hands-on cohort</span>
+        <h3>Think ML Research Cohort</h3>
+        <p class="dim">The Think Neuro model, applied to AI. Ten weeks. Small mentor groups. A frontier-lab advisor per cohort. Every student ships a working AI project and presents it at a demo day judged by advisors.</p>
+        <div class="spec">
+          <div><b>10 weeks</b><span>Duration</span></div>
+          <div><b>1 : 6</b><span>Mentor ratio</span></div>
+          <div><b>4 / year</b><span>Cohorts, seasonal</span></div>
+          <div><b>Live</b><span>Two sessions a week, online</span></div>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:8px;color:var(--bone-60);font-size:.95em">
+          <li>Mentors: PhD students and ML engineers, paid per cohort</li>
+          <li>Advisors: one masterclass, office hours, demo-day judging</li>
+          <li>Outputs: repo, demo, write-up, mentor letter, Think ML certificate</li>
+          <li>Premium margin, premium price, the brand-defining product</li>
+        </ul>
+      </article>
+      <article class="track cool" data-tilt>
+        <span class="tag cool">Track two · Automated</span>
+        <h3>Think ML Autopilot</h3>
+        <p class="dim">The same curriculum, recorded once, taught forever. An AI mentor guides each student through the projects, grades the work, and reports to parents. No live staff. The only input is marketing.</p>
+        <div class="spec">
+          <div><b>Self-paced</b><span>Start any day</span></div>
+          <div><b>AI mentor</b><span>24 / 7, project-aware</span></div>
+          <div><b>~90%</b><span>Gross margin, illustrative</span></div>
+          <div><b>Global</b><span>No timezone, no seats</span></div>
+        </div>
+        <ul style="margin:0;padding:0;list-style:none;display:grid;gap:8px;color:var(--bone-60);font-size:.95em">
+          <li>Recorded from the live cohort, so it stays current every season</li>
+          <li>Ladder into the cohort: Autopilot graduates get priority seats</li>
+          <li>The volume product, the funnel, and the data engine</li>
+          <li>Detailed in the next scene</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 07 AUTOPILOT (idea screen) -->
+<section class="scene" id="s07" data-scene="07" data-name="Idea: Autopilot">
+  <div class="slate"><span>Scene <b>07</b></span><span>Idea screen</span></div>
+  <div class="screen" data-tilt-soft>
+    <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
+    <div class="head">
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;color:#aab2ff">Idea screen · The automated version</p>
+        <h3>Record the cohort once. <span class="serif" style="color:#aab2ff">Sell it ten thousand times.</span></h3>
+      </div>
+      <div class="mono dim" style="text-align:right">Ops required<br><span style="color:var(--bone);font-size:1.4rem;letter-spacing:-.02em;text-transform:none">Marketing only</span></div>
+    </div>
+    <div class="loop">
+      <div class="step"><span class="n">01 · Capture</span><h4>Every live session is recorded</h4><p>Advisor masterclasses, mentor walkthroughs and project reviews from the cohort become the Autopilot library, refreshed every season for free.</p></div>
+      <div class="step"><span class="n">02 · Guide</span><h4>An AI mentor runs the week</h4><p>A model that knows the curriculum, the student's repo and their last three submissions. It explains, nudges, unblocks and never sleeps.</p></div>
+      <div class="step"><span class="n">03 · Build</span><h4>Projects graded automatically</h4><p>Notebook and repo submissions are run, tested and scored. Feedback in minutes, with a rubric written by the same mentors who teach live.</p></div>
+      <div class="step"><span class="n">04 · Report</span><h4>Parents get a weekly reel</h4><p>An automated progress report: what was built, what was learned, what is next. This is the retention engine and the referral engine.</p></div>
+      <div class="step"><span class="n">05 · Certify</span><h4>Portfolio and certificate</h4><p>A public project page, a certificate, and a fast lane into the live cohort or the Think ML Fellows track for the top few percent.</p></div>
+      <div class="step"><span class="n">06 · Repeat</span><h4>Zero marginal instruction</h4><p>Each new student costs inference and hosting. Growth is a function of ad spend, referrals and content, nothing else.</p></div>
+    </div>
+    <div class="ops">
+      <div><b>0</b><span>Live instructors per student</span></div>
+      <div><b>~$10 to $20</b><span>Illustrative cost to serve a learner</span></div>
+      <div><b>Any day</b><span>Enrolment window</span></div>
+      <div><b>1 team</b><span>Marketing runs it</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 ADVISORS -->
+<section class="scene" id="s08" data-scene="08" data-name="The advisors">
+  <div class="slate"><span>Scene <b>08</b></span><span>The names on the poster</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The advisors</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Recruited from the labs <span class="serif amber">building the thing.</span></h2>
+    <div class="orbit-wrap">
+      <div class="orbit" aria-label="Target advisor pool">
+        <div class="ring r1" style="transform:rotate(0deg)"><span style="transform:translate(-50%,-50%) rotate(0deg)">OpenAI</span></div>
+        <div class="ring r1" style="transform:rotate(72deg)"><span style="transform:translate(-50%,-50%) rotate(-72deg)">Anthropic</span></div>
+        <div class="ring r1" style="transform:rotate(144deg)"><span style="transform:translate(-50%,-50%) rotate(-144deg)">NVIDIA</span></div>
+        <div class="ring r1" style="transform:rotate(216deg)"><span style="transform:translate(-50%,-50%) rotate(-216deg)">Google DeepMind</span></div>
+        <div class="ring r1" style="transform:rotate(288deg)"><span style="transform:translate(-50%,-50%) rotate(-288deg)">Microsoft</span></div>
+        <div class="ring r2" style="transform:rotate(0deg)"><span style="transform:translate(-50%,-50%) rotate(0deg)">Meta AI</span></div>
+        <div class="ring r2" style="transform:rotate(120deg)"><span style="transform:translate(-50%,-50%) rotate(-120deg)">Hugging Face</span></div>
+        <div class="ring r2" style="transform:rotate(240deg)"><span style="transform:translate(-50%,-50%) rotate(-240deg)">Stanford · MIT · CMU</span></div>
+        <div class="ring r3"><span>Think Neuro network</span></div>
+        <div class="core">Students</div>
+      </div>
+      <div class="roles">
+        <p class="lede">Same recruiting motion as Think Neuro: a light, high-status role that costs an advisor a few hours a quarter and gives them something real in return.</p>
+        <div><b>Give</b><p>One recorded masterclass. One office hour per cohort. Judge demo day. Lend their name and their company's tools to the curriculum.</p></div>
+        <div><b>Get</b><p>A pipeline of the youngest talent in the field, early feedback on their products from a generation of new users, and a visible mission credit.</p></div>
+        <div><b>Hook</b><p>Adoption. Every advisor's employer wants the next generation fluent in its stack. We teach the stack. That is the sponsorship conversation, already open.</p></div>
+        <div><b>Status</b><p>Target pool, not signed. First five intros come from the Think Neuro advisor network and alumni parents who work at these companies.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 CURRICULUM -->
+<section class="scene" id="s09" data-scene="09" data-name="The curriculum">
+  <div class="slate"><span>Scene <b>09</b></span><span>Ten weeks</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The curriculum</p>
+    <h2 class="h-l">Ten weeks from <span class="serif amber">"I've used ChatGPT"</span> to a shipped AI project.</h2>
+    <p class="lede" style="margin-top:18px">No calculus required to start. Real models by week three. Frontier tools by week five. The same arc runs live in the cohort and recorded in Autopilot.</p>
+    <div class="weeks" id="weeks">
+      <i class="draw"></i>
+      <div class="wk"><span class="w">Week 01</span><div><h4>How machines learn</h4><p>Intuition first. Data, patterns, loss, why it works. Students train their first classifier in a browser before the session ends.</p></div></div>
+      <div class="wk"><span class="w">Week 02</span><div><h4>Python, data and a first real model</h4><p>Enough Python to be dangerous. Load a dataset, clean it, train, evaluate, argue about the result.</p></div></div>
+      <div class="wk"><span class="w">Week 03</span><div><h4>Neural networks from scratch</h4><p>Build a tiny network by hand, then the same thing in PyTorch. The moment the abstraction becomes obvious.</p></div></div>
+      <div class="wk"><span class="w">Week 04</span><div><h4>Inside a language model</h4><p>Tokens, attention, transformers, why scale matters. What is actually happening when ChatGPT answers.</p></div></div>
+      <div class="wk"><span class="w">Week 05</span><div><h4>Frontier APIs and agents</h4><p>Call OpenAI, Anthropic and Google models. Build a tool-using agent. This is where sponsor products enter the curriculum.</p></div></div>
+      <div class="wk"><span class="w">Week 06</span><div><h4>Research literacy</h4><p>Read a paper without fear. Form a question. Design a small experiment. Advisor masterclass on how their lab actually works.</p></div></div>
+      <div class="wk"><span class="w">Week 07</span><div><h4>Project sprint one</h4><p>Choose a track: agents, vision, audio, science, product. Mentor groups build. Weekly demos, weekly critique.</p></div></div>
+      <div class="wk"><span class="w">Week 08</span><div><h4>Project sprint two</h4><p>Make it work, then make it good. Evaluation, edge cases, cost, safety. Advisor office hours.</p></div></div>
+      <div class="wk"><span class="w">Week 09</span><div><h4>Write it up</h4><p>A short paper, a README, a two-minute demo video. Ethics and limits, written by the student, in their own words.</p></div></div>
+      <div class="wk"><span class="w">Week 10</span><div><h4>Demo day</h4><p>Present to advisors, parents and invited partners. Top projects go to the Think ML Journal and the Fellows track.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 FLYWHEEL -->
+<section class="scene" id="s10" data-scene="10" data-name="The flywheel">
+  <div class="slate"><span>Scene <b>10</b></span><span>Why it compounds</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The flywheel</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Every cohort makes the <span class="serif amber">next one cheaper to sell.</span></h2>
+    <div class="fw">
+      <svg viewBox="0 0 600 600" role="img" aria-label="Flywheel: students, projects, advisors, sponsors, deal flow, brand, back to students">
+        <defs>
+          <linearGradient id="fwg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f3b544"/><stop offset="1" stop-color="#5f6dff"/></linearGradient>
+        </defs>
+        <circle cx="300" cy="300" r="220" fill="none" stroke="rgba(235,229,216,.12)" stroke-width="1.5"/>
+        <circle id="fw-ring" cx="300" cy="300" r="220" fill="none" stroke="url(#fwg)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1382" stroke-dashoffset="1382" transform="rotate(-90 300 300)"/>
+        <g id="fw-nodes" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="1.5" text-anchor="middle" fill="#ebe5d8">
+          <g class="fwn"><circle cx="300" cy="80" r="42" fill="#0e0e17" stroke="#f3b544" stroke-width="1.5"/><text x="300" y="85">STUDENTS</text></g>
+          <g class="fwn"><circle cx="490" cy="190" r="42" fill="#0e0e17" stroke="rgba(235,229,216,.35)" stroke-width="1.5"/><text x="490" y="195">PROJECTS</text></g>
+          <g class="fwn"><circle cx="490" cy="410" r="42" fill="#0e0e17" stroke="rgba(235,229,216,.35)" stroke-width="1.5"/><text x="490" y="415">ADVISORS</text></g>
+          <g class="fwn"><circle cx="300" cy="520" r="42" fill="#0e0e17" stroke="rgba(235,229,216,.35)" stroke-width="1.5"/><text x="300" y="525">SPONSORS</text></g>
+          <g class="fwn"><circle cx="110" cy="410" r="42" fill="#0e0e17" stroke="rgba(235,229,216,.35)" stroke-width="1.5"/><text x="110" y="415">DEAL FLOW</text></g>
+          <g class="fwn"><circle cx="110" cy="190" r="42" fill="#0e0e17" stroke="rgba(235,229,216,.35)" stroke-width="1.5"/><text x="110" y="195">BRAND</text></g>
+        </g>
+        <text x="300" y="292" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-size="30" font-weight="700" fill="#ebe5d8" letter-spacing="-1">Think ML</text>
+        <text x="300" y="322" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" letter-spacing="2" fill="rgba(235,229,216,.55)">THE ADOPTION LAYER</text>
+      </svg>
+      <div class="fw-list">
+        <div><b>01</b><p><strong>Students</strong> enrol because parents trust the brand and the names on the poster.</p></div>
+        <div><b>02</b><p><strong>Projects</strong> get built, in public, on sponsor tools. Each one is a piece of marketing we did not pay for.</p></div>
+        <div><b>03</b><p><strong>Advisors</strong> see the quality, bring colleagues, and open the door to their employers.</p></div>
+        <div><b>04</b><p><strong>Sponsors</strong> pay to have their products taught and to reach the youngest developers on earth.</p></div>
+        <div><b>05</b><p><strong>Deal flow</strong> forms as incubators and labs scout demo day for the earliest talent and ideas.</p></div>
+        <div><b>06</b><p><strong>Brand</strong> compounds: "the program where the labs recruit" is a sentence every parent understands.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 SCALE PLAN (horizontal) -->
+<section class="scene pin hscene" id="s11" data-scene="11" data-name="The scale plan">
+  <div class="slate"><span>Scene <b>11</b></span><span>Five phases</span></div>
+  <div class="hwrap"><div class="htrack" id="scale-track">
+    <div class="panel intro">
+      <p class="eyebrow" style="margin-bottom:18px">The scale plan</p>
+      <h2 class="h-l">From one pilot cohort to the <span class="serif amber">academy the labs recruit from.</span></h2>
+      <p class="lede" style="margin-top:18px">Five phases. Each one is funded by the one before it.</p>
+    </div>
+    <article class="panel live">
+      <div class="idx">Phase · Months 0 to 6</div>
+      <div><div class="ph">0</div><h3>Pilot</h3></div>
+      <div>
+        <ul>
+          <li>Launch under the Think Neuro brand to the existing parent base</li>
+          <li>One founding cohort of 30, at a founders' price</li>
+          <li>Three advisors from labs, sourced through the Neuro network</li>
+          <li>Record everything: this is the Autopilot raw material</li>
+        </ul>
+        <div class="kpi" style="margin-top:18px"><span class="tag hot">30 students</span><span class="tag">3 advisors</span><span class="tag">1 demo day</span></div>
+      </div>
+    </article>
+    <article class="panel">
+      <div class="idx">Phase · Months 6 to 18</div>
+      <div><div class="ph">1</div><h3>Cohorts</h3></div>
+      <div>
+        <ul>
+          <li>Four seasonal cohorts a year, 60 to 120 students each</li>
+          <li>Mentor bench of 20, a repeatable recruiting and training loop</li>
+          <li>Advisor board of 10 across five companies</li>
+          <li>First outcomes: college admits, journal, alumni referrals</li>
+        </ul>
+        <div class="kpi" style="margin-top:18px"><span class="tag hot">300+ students / yr</span><span class="tag">10 advisors</span></div>
+      </div>
+    </article>
+    <article class="panel">
+      <div class="idx">Phase · Months 12 to 24</div>
+      <div><div class="ph">2</div><h3>Autopilot</h3></div>
+      <div>
+        <ul>
+          <li>Launch the recorded, AI-mentored track from cohort footage</li>
+          <li>Paid acquisition, creator partnerships, school counsellor channel</li>
+          <li>Top Autopilot students ladder into the live cohort</li>
+          <li>Ops stays flat while learners scale globally</li>
+        </ul>
+        <div class="kpi" style="margin-top:18px"><span class="tag cool">Thousands of learners</span><span class="tag">Marketing-only ops</span></div>
+      </div>
+    </article>
+    <article class="panel">
+      <div class="idx">Phase · Months 18 to 36</div>
+      <div><div class="ph">3</div><h3>Ecosystem</h3></div>
+      <div>
+        <ul>
+          <li>Lab sponsorships: sponsored project tracks built on their products</li>
+          <li>Incubator deal flow: YC-style partners get first look at demo day</li>
+          <li>Product literacy: companies pay to have their tools taught</li>
+          <li>This is where adoption becomes the business, not the mission</li>
+        </ul>
+        <div class="kpi" style="margin-top:18px"><span class="tag hot">Sponsor revenue</span><span class="tag">Deal-flow partnerships</span></div>
+      </div>
+    </article>
+    <article class="panel">
+      <div class="idx">Phase · Year 3 and beyond</div>
+      <div><div class="ph">4</div><h3>Academy</h3></div>
+      <div>
+        <ul>
+          <li>Think ML Academy: fellows, an annual summit, an alumni network</li>
+          <li>The place the labs come to find the youngest builders, the way a top accelerator's network works for founders</li>
+          <li>Micro-grants for student projects, funded by sponsors</li>
+          <li>The default first step for any teenager who wants a career in AI</li>
+        </ul>
+        <div class="kpi" style="margin-top:18px"><span class="tag hot">The category</span></div>
+      </div>
+    </article>
+  </div></div>
+</section>
+
+<!-- 12 REVENUE + MODEL -->
+<section class="scene" id="s12" data-scene="12" data-name="The engines">
+  <div class="slate"><span>Scene <b>12</b></span><span>Four engines</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The engines</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Four ways the same students <span class="serif amber">pay for the company.</span></h2>
+    <div class="engines">
+      <div class="engine" data-tilt><span class="k"><span>Engine A</span><span>Year 1</span></span><h4>Cohort tuition</h4><p>Premium, live, mentored. The brand-defining product and the first dollar in.</p><span class="m">~55% gross margin</span></div>
+      <div class="engine" data-tilt><span class="k"><span>Engine B</span><span>Year 2</span></span><h4>Autopilot</h4><p>Recorded, AI-mentored, self-paced. Volume, reach and near-zero marginal cost.</p><span class="m">~90% gross margin</span></div>
+      <div class="engine" data-tilt><span class="k"><span>Engine C</span><span>Year 2 to 3</span></span><h4>Sponsorship and product literacy</h4><p>Labs and AI companies pay to have their products taught and to reach students first.</p><span class="m">~80% gross margin</span></div>
+      <div class="engine" data-tilt><span class="k"><span>Engine D</span><span>Year 3</span></span><h4>Deal flow and placement</h4><p>Incubators and labs pay for access to demo day, fellows and the alumni network.</p><span class="m">~85% gross margin</span></div>
+    </div>
+    <div class="model" id="model">
+      <div class="controls">
+        <div>
+          <span class="mono amber">Interactive model · illustrative assumptions</span>
+          <p class="dim" style="margin-top:8px;font-size:.92em">Drag the inputs. Every number here is an assumption to argue with, not a forecast.</p>
+        </div>
+        <div class="ctl"><label for="i-price">Cohort price <b id="o-price"></b></label><input type="range" id="i-price" min="1500" max="6000" step="100" value="2900"></div>
+        <div class="ctl"><label for="i-students">Cohort students per year <b id="o-students"></b></label><input type="range" id="i-students" min="30" max="1200" step="10" value="240"></div>
+        <div class="ctl"><label for="i-aprice">Autopilot price, one-time <b id="o-aprice"></b></label><input type="range" id="i-aprice" min="99" max="990" step="10" value="490"></div>
+        <div class="ctl"><label for="i-alearn">Autopilot learners per year <b id="o-alearn"></b></label><input type="range" id="i-alearn" min="0" max="20000" step="100" value="2000"></div>
+        <div class="ctl"><label for="i-sponsors">Sponsors and literacy deals per year <b id="o-sponsors"></b></label><input type="range" id="i-sponsors" min="0" max="20" step="1" value="3"></div>
+        <div class="ctl"><label for="i-sponsor">Average deal size <b id="o-sponsor"></b></label><input type="range" id="i-sponsor" min="10000" max="250000" step="5000" value="50000"></div>
+        <div class="ctl"><label for="i-deal">Deal-flow and placement revenue <b id="o-deal"></b></label><input type="range" id="i-deal" min="0" max="500000" step="10000" value="0"></div>
+      </div>
+      <div class="out">
+        <div><span class="mono dim">Annual revenue</span><div class="total num" id="o-total">$0</div></div>
+        <div class="row"><span>Blended gross margin</span><b class="num" id="o-margin">0%</b></div>
+        <div class="row"><span>Gross profit</span><b class="num" id="o-gp">$0</b></div>
+        <div class="row"><span>Cohort tuition</span><b class="num" id="o-ra">$0</b><div class="bar a"><i id="b-a"></i></div></div>
+        <div class="row"><span>Autopilot</span><b class="num" id="o-rb">$0</b><div class="bar b"><i id="b-b"></i></div></div>
+        <div class="row"><span>Sponsorship and literacy</span><b class="num" id="o-rc">$0</b><div class="bar c"><i id="b-c"></i></div></div>
+        <div class="row"><span>Deal flow</span><b class="num" id="o-rd">$0</b><div class="bar d"><i id="b-d"></i></div></div>
+        <p class="note" style="margin-top:8px">Margins assumed: cohort 55%, Autopilot 90%, sponsorship 80%, deal flow 85%. Costs exclude marketing and overhead.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 GTM -->
+<section class="scene" id="s13" data-scene="13" data-name="Go to market">
+  <div class="slate"><span>Scene <b>13</b></span><span>How it sells</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">Go to market</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">Start where Think Neuro already wins. <span class="serif amber">Then let the students sell it.</span></h2>
+    <div class="channels">
+      <div class="card tilt" data-tilt><div class="k"><span>Channel 01</span><span>Day one</span></div><h3>The Think Neuro list</h3><p>Every Neuro family has a sibling, a friend, or the same kid two years later. One email launches the pilot. This is the cheapest cohort we will ever sell.</p></div>
+      <div class="card tilt" data-tilt><div class="k"><span>Channel 02</span><span>Month 3</span></div><h3>Counsellors and schools</h3><p>College counsellors want a credible AI program to recommend. Give them a referral track, a webinar, and a student showcase they can forward.</p></div>
+      <div class="card tilt" data-tilt><div class="k"><span>Channel 03</span><span>Month 6</span></div><h3>Student-built content</h3><p>Every project becomes a post, a demo video, a repo. Students publish, parents share, the algorithm does the rest. Autopilot's top of funnel.</p></div>
+      <div class="card tilt" data-tilt><div class="k"><span>Channel 04</span><span>Month 9</span></div><h3>Advisor amplification</h3><p>One advisor sharing demo day reaches more of the right parents than any ad. Make sharing effortless and worth their while.</p></div>
+      <div class="card tilt" data-tilt><div class="k"><span>Channel 05</span><span>Year 2</span></div><h3>Paid and creator</h3><p>Once Autopilot exists, paid acquisition and education creators make sense. Pay-back is measured in weeks, not cohorts.</p></div>
+      <div class="card tilt" data-tilt><div class="k"><span>Channel 06</span><span>Year 2</span></div><h3>Sponsor distribution</h3><p>Sponsors want reach into students. Their developer-relations teams become a channel, not just a cheque.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 RISKS -->
+<section class="scene" id="s14" data-scene="14" data-name="Risks and moats">
+  <div class="slate"><span>Scene <b>14</b></span><span>What could go wrong</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">Risks and moats</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">The honest list, <span class="serif amber">and the answer to each.</span></h2>
+    <div class="risks">
+      <div class="risk"><div><h4>"Anyone can launch an AI course for teens."</h4><p>True. Bootcamps, tutors and YouTube will all try.</p></div><div class="moat"><div class="k">Moat</div><p>Advisors, outcomes and a brand parents already trust. Courses are commodities. A program the labs judge is not.</p></div></div>
+      <div class="risk"><div><h4>The curriculum goes stale in six months.</h4><p>The field moves monthly. Any recorded product decays.</p></div><div class="moat"><div class="k">Moat</div><p>Autopilot is re-recorded from every live cohort. The live track is the refresh mechanism, paid for by tuition.</p></div></div>
+      <div class="risk"><div><h4>Advisors do not sign.</h4><p>Big names are busy and their employers are careful.</p></div><div class="moat"><div class="k">Moat</div><p>Think Neuro has done this before. The ask is small and the pool is huge: alumni parents, mentors' former colleagues, recruiters who want the pipeline.</p></div></div>
+      <div class="risk"><div><h4>Parents think AI is cheating.</h4><p>Some schools ban it. Some parents fear it.</p></div><div class="moat"><div class="k">Moat</div><p>We are the safe, supervised, credentialed path. Position against misuse, not around it. Fear is the reason they buy.</p></div></div>
+      <div class="risk"><div><h4>The live cohort does not scale.</h4><p>Mentors, timezones and quality all cap growth.</p></div><div class="moat"><div class="k">Moat</div><p>It does not have to. The cohort is the brand and the content engine. Autopilot and sponsorship are the scale.</p></div></div>
+      <div class="risk"><div><h4>Dilutes the Think Neuro brand.</h4><p>A weak launch reflects on the parent company.</p></div><div class="moat"><div class="k">Moat</div><p>Launch small, under the brand, with the same quality bar. The pilot is thirty students and one demo day. Prove it, then push.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 NINETY DAYS + ASK -->
+<section class="scene" id="s15" data-scene="15" data-name="First 90 days">
+  <div class="slate"><span>Scene <b>15</b></span><span>The next quarter</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:22px">The first ninety days</p>
+    <h2 class="h-l" style="margin-bottom:clamp(24px,4vh,48px)">What happens the week <span class="serif amber">you say yes.</span></h2>
+    <div class="plan">
+      <div class="card" data-tilt><div class="k"><span>Weeks 1 to 2</span><span>Decide</span></div><h3>Name it, brand it, staff it</h3><ul><li>Think ML under the Think Neuro umbrella</li><li>One owner for the program, one for curriculum</li><li>Shortlist of ten advisors, five warm intros requested</li></ul></div>
+      <div class="card" data-tilt><div class="k"><span>Weeks 3 to 5</span><span>Build</span></div><h3>Curriculum v1 and mentors</h3><ul><li>Ten-week syllabus, projects and rubrics written</li><li>Five mentors recruited and trained</li><li>Landing page and waitlist live, in the Neuro voice</li></ul></div>
+      <div class="card" data-tilt><div class="k"><span>Weeks 5 to 8</span><span>Sell</span></div><h3>Fill the founding cohort</h3><ul><li>Email the Think Neuro parent base</li><li>Thirty seats at a founders' price</li><li>Two parent webinars with an advisor on the call</li></ul></div>
+      <div class="card" data-tilt><div class="k"><span>Weeks 9 to 12</span><span>Run</span></div><h3>Start the pilot, record everything</h3><ul><li>Cohort one begins, every session captured</li><li>First sponsor conversation opened via an advisor</li><li>Demo day booked, outcomes tracked from day one</li></ul></div>
+    </div>
+    <div class="ask">
+      <div>
+        <span class="mono amber">The ask</span>
+        <h3 style="margin-top:12px">Five things only you can give this, Michael.</h3>
+        <p class="dim" style="margin-top:14px">None of them are money first. They are permission, access and a date.</p>
+      </div>
+      <ol>
+        <li><span><strong>A yes, and a decision date.</strong>Green-light the pilot with a named start week.</span></li>
+        <li><span><strong>The brand.</strong>Permission to launch as Think ML, a Think Neuro company, to the existing parent base.</span></li>
+        <li><span><strong>Five warm intros.</strong>Advisors, alumni parents and mentors inside the target labs. The first board comes from your network.</span></li>
+        <li><span><strong>A pilot budget.</strong>Illustratively $40k to $60k for mentors, tooling and recording. The pilot cohort is designed to earn most of it back.</span></li>
+        <li><span><strong>Two hours a month.</strong>One review with the program owner, one appearance in front of parents.</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 16 END -->
+<section class="scene" id="s16" data-scene="16" data-name="End card">
+  <div class="slate"><span>Scene <b>16</b></span><span>End card</span></div>
+  <div>
+    <p class="eyebrow" style="margin-bottom:26px;justify-content:center">The line</p>
+    <h2 class="end" id="endline">Build the <em>adoption.</em></h2>
+    <p class="lede" style="margin:28px auto 0;max-width:46ch">AI is being built faster than the world can use it. The next great company is not another model. It is the one that teaches a generation to use them, before they even reach college.</p>
+    <div class="actions">
+      <a class="btn" href="#s15" data-magnet>Back to the ask</a>
+      <a class="btn ghost" href="#s01" data-magnet>Play again</a>
+    </div>
+    <div class="credits">
+      <span>Think ML · A Think Neuro company</span>
+      <span>Prepared for <b>Michael</b></span>
+      <span>Internal · Confidential · All figures illustrative</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var hasGsap = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+  if (hasGsap) gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------------- helpers ---------------- */
+  function splitWords(el, cls) {
+    var text = el.textContent.trim();
+    el.textContent = '';
+    text.split(/\s+/).forEach(function (w, i) {
+      var s = document.createElement('span');
+      s.className = cls || 'word';
+      s.textContent = w;
+      el.appendChild(s);
+      el.appendChild(document.createTextNode(' '));
+    });
+    return $$('.' + (cls || 'word'), el);
+  }
+  function splitChars(el) {
+    var text = el.textContent;
+    el.textContent = '';
+    var out = [];
+    for (var i = 0; i < text.length; i++) {
+      var s = document.createElement('span');
+      s.className = 'char';
+      s.textContent = text[i];
+      el.appendChild(s);
+      out.push(s);
+    }
+    return out;
+  }
+  function fmtMoney(n) {
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(n >= 1e7 ? 1 : 2).replace(/\.?0+$/, '') + 'M';
+    if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
+    return '$' + Math.round(n);
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  /* ---------------- gate canvas: a neural field ---------------- */
+  function NeuralField(canvas, opts) {
+    var ctx = canvas.getContext('2d');
+    var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var pts = [];
+    var mouse = { x: -1e4, y: -1e4 };
+    var energy = 0;      // 0..1, driven by scroll
+    var running = true;
+    var count = opts.count || 90;
+    function resize() {
+      W = canvas.clientWidth; H = canvas.clientHeight;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.round(count * Math.min(1.4, (W * H) / (1280 * 800)));
+      pts = [];
+      for (var i = 0; i < n; i++) pts.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .35, vy: (Math.random() - .5) * .35, r: Math.random() * 1.6 + .6, hot: Math.random() < .18 });
+    }
+    function step() {
+      if (!running) return;
+      ctx.clearRect(0, 0, W, H);
+      var link = 130 + energy * 60;
+      var i, j, p, q;
+      for (i = 0; i < pts.length; i++) {
+        p = pts[i];
+        var dx = mouse.x - p.x, dy = mouse.y - p.y, d2 = dx * dx + dy * dy;
+        if (d2 < 220 * 220) { var f = (1 - Math.sqrt(d2) / 220) * .06; p.vx += dx / 220 * f; p.vy += dy / 220 * f; }
+        p.x += p.vx * (1 + energy * 1.5); p.y += p.vy * (1 + energy * 1.5);
+        p.vx *= .995; p.vy *= .995;
+        if (p.x < -20) p.x = W + 20; if (p.x > W + 20) p.x = -20;
+        if (p.y < -20) p.y = H + 20; if (p.y > H + 20) p.y = -20;
+      }
+      ctx.lineWidth = 1;
+      for (i = 0; i < pts.length; i++) {
+        p = pts[i];
+        for (j = i + 1; j < pts.length; j++) {
+          q = pts[j];
+          var ddx = p.x - q.x, ddy = p.y - q.y, dd = ddx * ddx + ddy * ddy;
+          if (dd < link * link) {
+            var a = (1 - Math.sqrt(dd) / link) * (.28 + energy * .25);
+            ctx.strokeStyle = (p.hot || q.hot) ? 'rgba(243,181,68,' + a + ')' : 'rgba(95,109,255,' + a + ')';
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+          }
+        }
+      }
+      for (i = 0; i < pts.length; i++) {
+        p = pts[i];
+        ctx.fillStyle = p.hot ? 'rgba(243,181,68,.9)' : 'rgba(235,229,216,.7)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+      requestAnimationFrame(step);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    if (!reduced) requestAnimationFrame(step); else { step(); running = false; }
+    return {
+      setMouse: function (x, y) { mouse.x = x; mouse.y = y; },
+      setEnergy: function (e) { energy = e; },
+      stop: function () { running = false; },
+      start: function () { if (!running && !reduced) { running = true; requestAnimationFrame(step); } }
+    };
+  }
+
+  var gateField = NeuralField($('#gate-canvas'), { count: 80 });
+  var mainField = null;
+
+  /* ---------------- cursor + spotlight ---------------- */
+  var mx = window.innerWidth / 2, my = window.innerHeight / 2;
+  if (fine && !reduced) {
+    var cur = $('#cursor'), dot = $('.c-dot', cur), ring = $('.c-ring', cur);
+    var rx = mx, ry = my;
+    document.addEventListener('mousemove', function (e) {
+      mx = e.clientX; my = e.clientY;
+      dot.style.transform = 'translate(' + mx + 'px,' + my + 'px) translate(-50%,-50%)';
+      document.documentElement.style.setProperty('--mx', mx + 'px');
+      document.documentElement.style.setProperty('--my', my + 'px');
+      gateField.setMouse(mx, my);
+      if (mainField) mainField.setMouse(mx, my);
+    });
+    (function ringLoop() {
+      rx += (mx - rx) * .18; ry += (my - ry) * .18;
+      ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)';
+      requestAnimationFrame(ringLoop);
+    })();
+    document.addEventListener('mouseover', function (e) {
+      var t = e.target.closest('a,button,input,[data-tilt],[data-magnet],.panel,.wk');
+      document.body.classList.toggle('cursor-hot', !!t);
+    });
+  }
+
+  /* ---------------- the gate ---------------- */
+  var K = [84, 104, 105, 110, 107, 98, 105, 103, 64, 51, 48, 111];
+  var KEY = String.fromCharCode.apply(null, K);
+  var gate = $('#gate'), form = $('#gate-form'), pw = $('#pw'), msg = $('#g-msg');
+  var unlocked = false;
+
+  function alreadyUnlocked() {
+    try { return sessionStorage.getItem('thinkml.unlocked') === '1'; } catch (e) { return false; }
+  }
+  function remember() { try { sessionStorage.setItem('thinkml.unlocked', '1'); } catch (e) {} }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (pw.value === KEY) { remember(); unlock(false); }
+    else {
+      msg.textContent = 'Wrong password. Try again.'; msg.classList.add('bad');
+      gate.classList.remove('shake'); void gate.offsetWidth; gate.classList.add('shake');
+      pw.select();
+    }
+  });
+  pw.addEventListener('input', function () { msg.textContent = 'Press enter to begin'; msg.classList.remove('bad'); });
+
+  function unlock(instant) {
+    if (unlocked) return; unlocked = true;
+    document.body.classList.remove('locked');
+    var shutter = $('.shutter', gate);
+    var finish = function () {
+      gate.style.display = 'none';
+      gateField.stop();
+      startFilm();
+    };
+    if (instant || reduced || !hasGsap) { finish(); return; }
+    var tl = gsap.timeline({ onComplete: finish });
+    tl.to($('.g-inner', gate), { opacity: 0, y: -20, duration: .5, ease: 'power2.in' }, 0)
+      .to($('.g-foot', gate), { opacity: 0, duration: .3 }, 0)
+      .to(shutter, { scaleY: 1, duration: .55, ease: 'power3.inOut' }, .2)
+      .to(gate, { opacity: 0, duration: .01 }, .8);
+  }
+
+  if (alreadyUnlocked()) unlock(true); else pw.focus();
+
+  /* ---------------- the film ---------------- */
+  var scenes = $$('.scene');
+  var runtime = 12 * 60; // seconds of "film"
+
+  function buildReel() {
+    var reel = $('#reel');
+    scenes.forEach(function (s) {
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.innerHTML = '<i></i><span>' + s.dataset.scene + ' · ' + s.dataset.name + '</span>';
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (window.__lenis) window.__lenis.scrollTo(s, { duration: 1.6 });
+        else s.scrollIntoView({ behavior: 'smooth' });
+      });
+      reel.appendChild(a);
+    });
+  }
+
+  function startFilm() {
+    mainField = NeuralField($('#field'), { count: 70 });
+    buildReel();
+    var hud = $('#hud');
+
+    // smooth scroll
+    if (!reduced && typeof Lenis !== 'undefined') {
+      var lenis = new Lenis({ lerp: .085, wheelMultiplier: 1, smoothWheel: true });
+      window.__lenis = lenis;
+      if (hasGsap) {
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
+        gsap.ticker.lagSmoothing(0);
+      } else {
+        (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
+      }
+    }
+    $$('a[href^="#"]').forEach(function (a) {
+      if (a.closest('#reel')) return;
+      a.addEventListener('click', function (e) {
+        var t = $(a.getAttribute('href'));
+        if (!t) return;
+        e.preventDefault();
+        if (window.__lenis) window.__lenis.scrollTo(t, { duration: 1.8 }); else t.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // interactive model (always on)
+    initModel();
+    // tilt + magnet (mouse)
+    if (fine && !reduced) { initTilt(); initMagnet(); }
+
+    if (!hasGsap) { hud.style.opacity = 1; $('#field').style.opacity = .5; $('#reel').style.opacity = 1; return; }
+
+    // HUD + bars + title reveal
+    var titleChars = [];
+    $$('#s01 .tw').forEach(function (w) { titleChars = titleChars.concat(splitChars(w)); });
+
+    var intro = gsap.timeline();
+    intro.set($('.bars .top'), { height: '50vh' }).set($('.bars .bot'), { height: '50vh' })
+      .to('.bars .bar', { height: '6vh', duration: 1.2, ease: 'power4.inOut' })
+      .to('#field', { opacity: .55, duration: 1.2 }, '<.3')
+      .from(titleChars, { yPercent: 110, opacity: 0, rotateX: -40, duration: 1.1, stagger: .035, ease: 'power4.out' }, '-=.7')
+      .from('#s01 .eyebrow', { opacity: 0, x: -20, duration: .6 }, '-=.8')
+      .from('#s01 .sub > *', { opacity: 0, y: 20, duration: .8, stagger: .12 }, '-=.6')
+      .to(hud, { opacity: 1, duration: .6 }, '-=.6')
+      .to('#reel', { opacity: 1, duration: .6 }, '<')
+      .from('#s01 .scrollcue', { opacity: 0, duration: .6 }, '<');
+    if (reduced) { intro.progress(1); }
+
+    // global progress: timecode, progress bar, field energy
+    var tcEl = $('#hud-tc'), prEl = $('#hud-progress');
+    ScrollTrigger.create({
+      start: 0, end: 'max',
+      onUpdate: function (self) {
+        var p = self.progress;
+        var s = p * runtime, m = Math.floor(s / 60), sec = Math.floor(s % 60), fr = Math.floor((s % 1) * 24);
+        tcEl.textContent = pad(m) + ':' + pad(sec) + ':' + pad(fr);
+        prEl.style.width = (p * 100) + '%';
+        if (mainField) mainField.setEnergy(Math.min(1, Math.abs(self.getVelocity()) / 2500));
+      }
+    });
+
+    // scene tracking for HUD + reel
+    var sceneEl = $('#hud-scene'), nameEl = $('#hud-name');
+    var reelLinks = $$('#reel a');
+    scenes.forEach(function (s, i) {
+      ScrollTrigger.create({
+        trigger: s, start: 'top 55%', end: 'bottom 55%',
+        onToggle: function (self) {
+          if (!self.isActive) return;
+          sceneEl.textContent = 'Scene ' + s.dataset.scene;
+          nameEl.textContent = s.dataset.name;
+          reelLinks.forEach(function (a, j) { a.classList.toggle('on', j === i); });
+        }
+      });
+    });
+
+    // letterbox bars breathe between scenes: wider on pinned scenes
+    $$('.scene.pin').forEach(function (s) {
+      ScrollTrigger.create({
+        trigger: s, start: 'top 60%', end: 'bottom 40%',
+        onEnter: function () { gsap.to('.bars .bar', { height: '9vh', duration: .8, ease: 'power3.inOut' }); },
+        onLeave: function () { gsap.to('.bars .bar', { height: '6vh', duration: .8, ease: 'power3.inOut' }); },
+        onEnterBack: function () { gsap.to('.bars .bar', { height: '9vh', duration: .8, ease: 'power3.inOut' }); },
+        onLeaveBack: function () { gsap.to('.bars .bar', { height: '6vh', duration: .8, ease: 'power3.inOut' }); }
+      });
+    });
+
+    if (reduced) { ScrollTrigger.refresh(); return; }
+
+    // generic reveals: eyebrows, headings, ledes, cards
+    $$('.scene').forEach(function (s) {
+      if (s.id === 's01') return;
+      var heads = $$('.eyebrow, h2.h-l, h2.h-m, .lede', s).filter(function (el) { return !el.closest('.htrack') && !el.hasAttribute('data-no-reveal'); });
+      if (heads.length) gsap.from(heads, { opacity: 0, y: 40, duration: 1, stagger: .12, ease: 'power3.out', scrollTrigger: { trigger: s, start: 'top 70%' } });
+    });
+    var revealSets = ['#s05 .side', '#s05 .bridge', '#s06 .track', '#s07 .step', '#s07 .ops div', '#s08 .roles div', '#s10 .fw-list div', '#s12 .engine', '#s13 .card', '#s14 .risk', '#s15 .card', '#s15 .ask'];
+    revealSets.forEach(function (sel) {
+      var els = $$(sel); if (!els.length) return;
+      gsap.from(els, { opacity: 0, y: 50, duration: 1, stagger: .1, ease: 'power3.out', scrollTrigger: { trigger: els[0], start: 'top 85%' } });
+    });
+
+    // parallax on the slates
+    $$('.slate').forEach(function (el) {
+      gsap.to(el, { y: -60, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
+    });
+
+    // 01: title drifts and fades as you leave
+    gsap.to('#s01 .frame', { yPercent: -18, opacity: 0, scale: .96, ease: 'none', scrollTrigger: { trigger: '#s01', start: 'top top', end: 'bottom top', scrub: true } });
+
+    // 02: thesis word-by-word + counters race (pinned on desktop, scrubbed in place on mobile)
+    var words = splitWords($('#thesis'));
+    var hotWords = ['adoption.', 'make', 'them,', 'before', 'college.'];
+    words.forEach(function (w) { if (hotWords.indexOf(w.textContent) > -1) w.classList.add('hot'); });
+    var raceA = { v: 0 }, raceB = { v: 0 };
+    function paintRace() {
+      $('#race-a').textContent = Math.round(raceA.v); $('#race-a-bar').style.width = (raceA.v / 24 * 100) + '%';
+      $('#race-b').textContent = raceB.v.toFixed(1); $('#race-b-bar').style.width = (raceB.v / 24 * 100 * 6) + '%';
+    }
+    paintRace();
+    function buildThesis(pin) {
+      var st = pin ? { trigger: '#s02', start: 'top top', end: '+=220%', pin: true, scrub: .6 }
+                   : { trigger: '#s02', start: 'top 70%', end: 'bottom 90%', scrub: .6 };
+      var tl = gsap.timeline({ scrollTrigger: st });
+      tl.to(words, { opacity: 1, stagger: .05, duration: .05, ease: 'none' }, 0)
+        .to(raceA, { v: 24, duration: 1.2, ease: 'power2.out', onUpdate: paintRace }, 1.2)
+        .to(raceB, { v: 0.2, duration: 1.2, ease: 'power2.out', onUpdate: paintRace }, 1.2)
+        .to({}, { duration: .4 });
+      return tl;
+    }
+
+    var mm = gsap.matchMedia();
+    mm.add('(min-width: 901px)', function () {
+      buildThesis(true);
+
+      // 04: lineage morph, pinned
+      var s04 = gsap.timeline({ scrollTrigger: { trigger: '#s04', start: 'top top', end: '+=160%', pin: true, scrub: .6 } });
+      s04.from('#s04 .neuro .row', { opacity: 0, x: -30, stagger: .08, duration: .5 }, 0)
+         .to('#s04 .arrow i', { scaleX: 1, scaleY: 1, duration: .6, ease: 'none' }, .5)
+         .from('#s04 .ml .row', { opacity: 0, x: 30, stagger: .08, duration: .5 }, .9)
+         .from('#s04 .ml h3', { opacity: 0, y: 10, duration: .3 }, .9)
+         .from('#s04 .lineage + .lede', { opacity: 0, y: 20, duration: .5 }, 1.6)
+         .to({}, { duration: .3 });
+
+      // horizontal scenes
+      ['#s03', '#s11'].forEach(function (id) {
+        var sec = $(id), track = $('.htrack', sec);
+        var dist = function () { return track.scrollWidth - window.innerWidth; };
+        var tween = gsap.to(track, { x: function () { return -dist(); }, ease: 'none', scrollTrigger: { trigger: sec, start: 'top top', end: function () { return '+=' + dist(); }, pin: true, scrub: .8, invalidateOnRefresh: true, anticipatePin: 1 } });
+        $$('.panel', sec).forEach(function (p) {
+          gsap.from(p, { opacity: 0, y: 60, scale: .96, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: p, containerAnimation: tween, start: 'left 90%' } });
+          if (sec.id === 's11' && !p.classList.contains('intro')) {
+            ScrollTrigger.create({ trigger: p, containerAnimation: tween, start: 'left 60%', end: 'right 40%', onToggle: function (self) { p.classList.toggle('live', self.isActive); } });
+          }
+        });
+      });
+      return function () {};
+    });
+    mm.add('(max-width: 900px)', function () {
+      buildThesis(false);
+      ['#s03', '#s11'].forEach(function (id) {
+        $$('.panel', $(id)).forEach(function (p) {
+          gsap.from(p, { opacity: 0, y: 40, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: p, start: 'top 85%' } });
+        });
+      });
+      $$('#s11 .panel').forEach(function (p) { p.classList.add('live'); });
+      gsap.from('#s04 .row', { opacity: 0, y: 20, stagger: .06, duration: .6, ease: 'power3.out', scrollTrigger: { trigger: '#s04 .lineage', start: 'top 80%' } });
+      gsap.to('#s04 .arrow i', { scaleX: 1, scaleY: 1, duration: .8, ease: 'power2.out', scrollTrigger: { trigger: '#s04 .arrow', start: 'top 80%' } });
+      gsap.from('#s04 .lineage + .lede', { opacity: 0, y: 20, duration: .6, scrollTrigger: { trigger: '#s04 .lineage + .lede', start: 'top 90%' } });
+    });
+
+    // 07: screen zoom
+    gsap.from('#s07 .screen', { scale: .88, opacity: 0, rotateX: 8, transformOrigin: '50% 100%', duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '#s07', start: 'top 70%' } });
+
+    // 08: orbit rotation scrubbed by scroll
+    gsap.to('#s08 .ring.r1', { rotate: '+=140', ease: 'none', scrollTrigger: { trigger: '#s08', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+    gsap.to('#s08 .ring.r1 span', { rotate: '-=140', ease: 'none', scrollTrigger: { trigger: '#s08', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+    gsap.to('#s08 .ring.r2', { rotate: '-=100', ease: 'none', scrollTrigger: { trigger: '#s08', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+    gsap.to('#s08 .ring.r2 span', { rotate: '+=100', ease: 'none', scrollTrigger: { trigger: '#s08', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+    gsap.from('#s08 .orbit', { scale: .7, opacity: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '#s08', start: 'top 70%' } });
+
+    // 09: timeline draw
+    var weeks = $$('#s09 .wk');
+    gsap.to('#s09 .draw', { scaleY: 1, ease: 'none', scrollTrigger: { trigger: '#weeks', start: 'top 60%', end: 'bottom 60%', scrub: true } });
+    weeks.forEach(function (w) {
+      gsap.from(w, { opacity: 0, x: 30, duration: .7, ease: 'power3.out', scrollTrigger: { trigger: w, start: 'top 80%' } });
+      ScrollTrigger.create({ trigger: w, start: 'top 60%', end: 'bottom 60%', onToggle: function (self) { w.classList.toggle('on', self.isActive); } });
+    });
+
+    // 10: flywheel draws + nodes light up
+    gsap.to('#fw-ring', { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '#s10', start: 'top 60%', end: 'bottom 70%', scrub: true } });
+    gsap.from('#fw-nodes .fwn', { opacity: 0, scale: .6, transformOrigin: '50% 50%', stagger: .12, duration: .6, ease: 'back.out(1.6)', scrollTrigger: { trigger: '#s10', start: 'top 60%' } });
+    gsap.to('#s10 svg', { rotate: 12, ease: 'none', scrollTrigger: { trigger: '#s10', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+    gsap.to('#fw-nodes text, #s10 svg > text', { rotate: -12, transformOrigin: '50% 50%', ease: 'none', scrollTrigger: { trigger: '#s10', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+
+    // 12: model reveals with count-up of total
+    gsap.from('#model', { opacity: 0, y: 40, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: '#model', start: 'top 80%' } });
+
+    // 16: end card scales up from small, credits roll
+    gsap.from('#endline', { scale: .55, opacity: 0, ease: 'power2.out', scrollTrigger: { trigger: '#s16', start: 'top bottom', end: 'top 20%', scrub: true } });
+    gsap.from('#s16 .credits span', { opacity: 0, y: 20, stagger: .15, duration: .8, scrollTrigger: { trigger: '#s16 .credits', start: 'top 90%' } });
+    ScrollTrigger.create({
+      trigger: '#s16', start: 'top 40%',
+      onEnter: function () { gsap.to('.bars .bar', { height: '14vh', duration: 1.2, ease: 'power3.inOut' }); },
+      onLeaveBack: function () { gsap.to('.bars .bar', { height: '6vh', duration: .8, ease: 'power3.inOut' }); }
+    });
+
+    // fonts may reflow: refresh once they land
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });
+    window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+  }
+
+  /* ---------------- tilt + magnet ---------------- */
+  function initTilt() {
+    $$('[data-tilt], [data-tilt-soft]').forEach(function (el) {
+      var soft = el.hasAttribute('data-tilt-soft');
+      var max = soft ? 3 : 7;
+      el.addEventListener('mousemove', function (e) {
+        var r = el.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
+        el.style.transform = 'perspective(1200px) rotateX(' + (-py * max) + 'deg) rotateY(' + (px * max) + 'deg) translateZ(0)';
+        el.style.transition = 'transform .08s';
+      });
+      el.addEventListener('mouseleave', function () {
+        el.style.transition = 'transform .6s cubic-bezier(.22,1,.36,1)';
+        el.style.transform = 'perspective(1200px) rotateX(0) rotateY(0)';
+      });
+    });
+  }
+  function initMagnet() {
+    $$('[data-magnet]').forEach(function (el) {
+      el.addEventListener('mousemove', function (e) {
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - (r.left + r.width / 2)) * .3, y = (e.clientY - (r.top + r.height / 2)) * .3;
+        el.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      });
+      el.addEventListener('mouseleave', function () { el.style.transform = 'translate(0,0)'; });
+    });
+  }
+
+  /* ---------------- interactive model ---------------- */
+  function initModel() {
+    var ids = ['price', 'students', 'aprice', 'alearn', 'sponsors', 'sponsor', 'deal'];
+    var inputs = {};
+    ids.forEach(function (k) { inputs[k] = $('#i-' + k); });
+    var fmt = {
+      price: fmtMoney, students: function (n) { return n.toLocaleString(); }, aprice: fmtMoney,
+      alearn: function (n) { return n.toLocaleString(); }, sponsors: function (n) { return n; }, sponsor: fmtMoney, deal: fmtMoney
+    };
+    var lastTotal = 0;
+    function calc() {
+      var v = {}; ids.forEach(function (k) { v[k] = +inputs[k].value; $('#o-' + k).textContent = fmt[k](v[k]); });
+      var ra = v.price * v.students, rb = v.aprice * v.alearn, rc = v.sponsors * v.sponsor, rd = v.deal;
+      var total = ra + rb + rc + rd;
+      var gp = ra * .55 + rb * .90 + rc * .80 + rd * .85;
+      var margin = total ? gp / total : 0;
+      $('#o-ra').textContent = fmtMoney(ra); $('#o-rb').textContent = fmtMoney(rb); $('#o-rc').textContent = fmtMoney(rc); $('#o-rd').textContent = fmtMoney(rd);
+      $('#o-gp').textContent = fmtMoney(gp); $('#o-margin').textContent = Math.round(margin * 100) + '%';
+      var mx = Math.max(ra, rb, rc, rd, 1);
+      $('#b-a').style.width = (ra / mx * 100) + '%'; $('#b-b').style.width = (rb / mx * 100) + '%'; $('#b-c').style.width = (rc / mx * 100) + '%'; $('#b-d').style.width = (rd / mx * 100) + '%';
+      var totalEl = $('#o-total');
+      if (hasGsap && !reduced) {
+        var o = { v: lastTotal };
+        gsap.to(o, { v: total, duration: .5, ease: 'power2.out', overwrite: true, onUpdate: function () { totalEl.textContent = fmtMoney(o.v); } });
+      } else totalEl.textContent = fmtMoney(total);
+      lastTotal = total;
+    }
+    ids.forEach(function (k) { inputs[k].addEventListener('input', calc); });
+    calc();
+  }
+})();
+</script>
+</body>
+</html>
